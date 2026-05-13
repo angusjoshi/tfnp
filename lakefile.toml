@@ -12,4 +12,4 @@ rev = "6cf3ab1c11e19e328c2e535bdd32d66dc7842fb5"
 
 [[lean_lib]]
 name = "Tfnp"
-globs = ["Tfnp.*"]
+globs = ["Tfnp.+"]

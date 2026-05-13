@@ -33,9 +33,28 @@ halving, shifted-pyramid disjointness, pyramid cover), the integer grid
 `do`-notation), the query bound, the in-cube property, and the final
 assembly are all proved.
 
-Brouwer's fixed-point theorem on a closed cube is taken as an `axiom`
-(`brouwer_cube`) — it is a long-standing gap in mathlib and is itself the
-natural next target (provable via Sperner's lemma).
+Brouwer's fixed-point theorem on a closed cube is currently taken as an
+`axiom` (`brouwer_cube`) — it is a long-standing gap in mathlib. The natural
+next target is to discharge it via the vendored Brouwer formalization (below),
+once the porting from upstream's mathlib pin to ours is complete.
+
+## Acknowledgements
+
+* `Tfnp/Brouwer/` vendors the Brouwer fixed-point formalization from
+  [math-xmum/Brouwer](https://github.com/math-xmum/Brouwer)
+  (Copyright (c) 2025 Math_XMUM, MIT License — see `LICENSE-Brouwer`).
+  The four files (`Simplex.lean`, `Scarf.lean`, `Brouwer.lean`,
+  `Brouwer_product.lean`) provide a Brouwer fixed point theorem via Scarf's
+  combinatorial lemma. We exclude their `Nash.lean` (Nash equilibrium
+  application, out of scope here).
+
+  **Porting status:** the upstream targets Lean `v4.22.0` with a corresponding
+  mathlib pin (`29675b2a…`); this project tracks `v4.30.0-rc2` with mathlib
+  `6cf3ab1c…`. `Simplex.lean` ports cleanly with two patches
+  (`mul_le_mul_left.mpr` → `mul_le_mul_of_nonneg_left`); the remaining three
+  files need similar mechanical fixes (`Finset.card_sdiff` →
+  `Finset.card_sdiff_of_subset`, etc.) before they build. Until then they are
+  vendored but not imported by `Tfnp.lean`; `brouwer_cube` remains an axiom.
 
 ## Building
 

@@ -12,6 +12,7 @@ import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
 import Mathlib.Analysis.InnerProductSpace.EuclideanDist
 import Tfnp.QueryModel
 import Tfnp.Shrinking
+import Tfnp.Brouwer.Cube
 
 /-!
 # Query complexity of `ℓ∞`-contraction map fixpoint computation
@@ -444,38 +445,21 @@ noncomputable def EVEN (n k : ℕ) : Finset (IntVec k) :=
   unfold EVEN
   simp [Finset.mem_filter]
 
-/-! ### External dependency: Brouwer's fixed-point theorem
+/-! ### Brouwer's fixed-point theorem on a closed cube
 
-Mathlib (as of writing) does not contain Brouwer's fixed-point theorem in
-dimension `> 1`. Only the 1D IVT-based fixed-point lemma
-(`exists_mem_Icc_isFixedPt`) and the Banach contraction-mapping theorem
-(`ContractingWith.exists_fixedPoint`) are available. The building blocks for
-Brouwer — singular homology, simplicial complexes, the topological simplex —
-*are* in `Mathlib.AlgebraicTopology`, but the theorem itself has not been
-formalised yet.
+Mathlib does not yet have Brouwer's fixed-point theorem in dimension `> 1`.
+Only the 1D IVT-based fixed-point lemma (`exists_mem_Icc_isFixedPt`) and the
+Banach contraction-mapping theorem (`ContractingWith.exists_fixedPoint`) are
+available; the building blocks for Brouwer (singular homology, simplicial
+complexes, the topological simplex) live in `Mathlib.AlgebraicTopology` but
+have not been assembled into the theorem.
 
-We therefore introduce Brouwer's fixed-point theorem on a closed `k`-cube as
-an explicit `axiom`. A natural follow-up is to prove this through Sperner's
-lemma (also missing from mathlib) — a purely combinatorial route that avoids
-the homological machinery.
+We use `brouwer_cube` from `Tfnp.Brouwer.Cube`, which is derived from
+`Brouwer_Product` (a product-of-simplices form of Brouwer proved via Scarf's
+combinatorial lemma — vendored from `math-xmum/Brouwer`).
 
-Below, `CubeBox a b k = {x : Vec k | ∀ i, a ≤ x i ∧ x i ≤ b}` is the closed
+`CubeBox a b k = {x : Vec k | ∀ i, a ≤ x i ∧ x i ≤ b}` is the closed
 `k`-dimensional box `[a, b]^k`. -/
-
-/-- The closed `k`-dimensional box `[a, b]^k ⊆ Vec k`. -/
-def CubeBox (a b : ℝ) (k : ℕ) : Set (Vec k) :=
-  { x | ∀ i, a ≤ x i ∧ x i ≤ b }
-
-/-- **Brouwer's fixed-point theorem on a closed cube (axiom).** Every continuous
-self-map of `[a, b]^k` (with `a ≤ b`) has a fixed point in the cube.
-
-This is the only mathematical content of the file that is not proved — it is
-a well-known theorem missing from mathlib. A future contribution should
-discharge this via Sperner's lemma + standard reductions. -/
-axiom brouwer_cube {k : ℕ} {a b : ℝ} (hab : a ≤ b) (f : Vec k → Vec k)
-    (hcont : ContinuousOn f (CubeBox a b k))
-    (hmaps : Set.MapsTo f (CubeBox a b k) (CubeBox a b k)) :
-    ∃ x ∈ CubeBox a b k, f x = x
 
 /-! ### Brouwer-based construction of the balanced point
 
@@ -636,7 +620,7 @@ theorem exists_continuous_balanced_point {k : ℕ} (n : ℕ) (T : Finset (IntVec
     by_cases hcase1 : auxMap n T t p i < -1 / 4
     · -- Clipping floors `g p i` to `-1/4`. Then `p i = -1/4`.
       have hclip : g p i = -1 / 4 := by
-        show max (-1 / 4 : ℝ) (min ((n : ℝ) + 1 / 4) (auxMap n T t p i)) = -1 / 4
+        change max (-1 / 4 : ℝ) (min ((n : ℝ) + 1 / 4) (auxMap n T t p i)) = -1 / 4
         rw [min_eq_right (by linarith : auxMap n T t p i ≤ (n : ℝ) + 1 / 4),
             max_eq_left (le_of_lt hcase1)]
       rw [hclip] at hi
@@ -652,8 +636,8 @@ theorem exists_continuous_balanced_point {k : ℕ} (n : ℕ) (T : Finset (IntVec
     · by_cases hcase2 : (n : ℝ) + 1 / 4 < auxMap n T t p i
       · -- Clipping caps `g p i` at `n+1/4`. Then `p i = n+1/4`.
         have hclip : g p i = (n : ℝ) + 1 / 4 := by
-          show max (-1 / 4 : ℝ) (min ((n : ℝ) + 1 / 4) (auxMap n T t p i)) =
-               (n : ℝ) + 1 / 4
+          change max (-1 / 4 : ℝ) (min ((n : ℝ) + 1 / 4) (auxMap n T t p i)) =
+                 (n : ℝ) + 1 / 4
           rw [min_eq_left (le_of_lt hcase2)]
           exact max_eq_right hcube
         rw [hclip] at hi
@@ -667,10 +651,10 @@ theorem exists_continuous_balanced_point {k : ℕ} (n : ℕ) (T : Finset (IntVec
         have := div_nonneg hvol_nn_neg hdenom_pos.le
         linarith
       · -- `auxMap p i ∈ [-1/4, n+1/4]`. Clipping inactive: `g p i = auxMap p i`.
-        push_neg at hcase1 hcase2
+        push Not at hcase1 hcase2
         have hclip : g p i = auxMap n T t p i := by
-          show max (-1 / 4 : ℝ) (min ((n : ℝ) + 1 / 4) (auxMap n T t p i)) =
-               auxMap n T t p i
+          change max (-1 / 4 : ℝ) (min ((n : ℝ) + 1 / 4) (auxMap n T t p i)) =
+                 auxMap n T t p i
           rw [min_eq_right hcase2, max_eq_right hcase1]
         rw [hclip] at hi
         exact hi
@@ -855,7 +839,7 @@ The CLY proof has two steps:
 2. **Rounding (Lemma 8).** Round `p*` to a nearby integer `q* ∈ [0:n]^k`,
    breaking ties on parity so that the pyramid containments are preserved.
 
-Step 1 is reducible to `brouwer_cube` (our Brouwer axiom). Step 2 is purely
+Step 1 is reducible to `brouwer_cube` (Scarf-via-`Brouwer_Product`). Step 2 is purely
 constructive integer rounding. Filling these in is mechanical given the
 foundational pieces, but each is substantial in its own right — left as a
 sorry to be discharged in a follow-up. -/
