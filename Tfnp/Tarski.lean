@@ -3,7 +3,18 @@ Copyright (c) 2026 Angus Joshi. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Angus Joshi
 -/
-import Mathlib
+import Mathlib.Order.FixedPoints
+import Mathlib.Data.Fintype.Order
+import Mathlib.Data.Fin.Tuple.Basic
+import Mathlib.Data.Nat.Log
+import Mathlib.Data.Nat.Lattice
+import Mathlib.Algebra.Order.BigOperators.Group.Finset
+import Mathlib.Algebra.Order.Group.Nat
+import Mathlib.Order.Iterate
+import Mathlib.Tactic.Linarith
+import Mathlib.Tactic.NormNum
+import Mathlib.Tactic.Ring
+import Mathlib.Tactic.Push
 import Tfnp.QueryModel
 
 /-!
@@ -897,19 +908,22 @@ noncomputable def queryComplexity (N d : ℕ) (alg : QueryAlg (L N d) (L N d) (L
   ⨆ T : TarskiInstance N d, alg.queries T.f
 
 /-- **Etessami et al. lower bound:** any deterministic algorithm that correctly
-finds a fixed point on every monotone instance issues `Ω((log(N+1))^d)` queries
-on some instance.
+finds a fixed point on every monotone instance issues `Ω((log₂(N+1))^d)`
+queries on some instance.
 
-Formally: there exists `c > 0` such that for every algorithm `alg` whose run
-is always a fixed point, `queryComplexity N d alg ≥ c · (log(N+1))^d` for all
-sufficiently large `N`.
+Formally: there exists a constant `c ≥ 1` and a threshold `N₀(d)` such that
+for every `N ≥ N₀(d)` and every algorithm `alg` whose run is always a fixed
+point, `queryComplexity N d alg ≥ (log₂(N+1))^d / c`.
+
+(Stated in `Nat.log` to avoid the heavy `Mathlib.Analysis.SpecialFunctions.Log`
+import; the same bound up to constants holds with `Real.log`.)
 
 Proof: adversary argument as above. -/
 theorem etessami_lowerBound :
-    ∃ c : ℝ, 0 < c ∧ ∀ (d : ℕ), ∀ᶠ N in Filter.atTop, ∀
-      (alg : QueryAlg (L N d) (L N d) (L N d))
-      (_hcorrect : ∀ T : TarskiInstance N d, T.IsFixedPt (alg.run T.f)),
-      (c * (Real.log (N + 1)) ^ d : ℝ) ≤ (queryComplexity N d alg : ℝ) := by
+    ∃ c : ℕ, 0 < c ∧ ∀ (d : ℕ), ∃ N₀ : ℕ, ∀ N ≥ N₀,
+      ∀ (alg : QueryAlg (L N d) (L N d) (L N d))
+        (_hcorrect : ∀ T : TarskiInstance N d, T.IsFixedPt (alg.run T.f)),
+      (Nat.log 2 (N + 1)) ^ d ≤ c * queryComplexity N d alg := by
   sorry
 
 end Tarski

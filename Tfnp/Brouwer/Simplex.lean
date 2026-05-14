@@ -7,7 +7,10 @@ mathlib (this project tracks `6cf3ab1c…`; upstream targets an older pin).
 The file is included verbatim except for: updated `import` paths
 (`Gametheory.X` → `Tfnp.Brouwer.X`), and isolated patches noted below.
 -/
-import Mathlib
+import Mathlib.Analysis.Convex.StdSimplex
+import Mathlib.Algebra.Order.BigOperators.Group.Finset
+import Mathlib.Tactic.Tauto
+import Mathlib.Tactic.Push
 
 -- Vendored file: suppress style/deprecation linters. See README for porting status.
 set_option linter.mathlibStandardSet false

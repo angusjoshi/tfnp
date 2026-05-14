@@ -3,7 +3,15 @@ Copyright (c) 2026 Angus Joshi. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Angus Joshi
 -/
-import Mathlib
+import Mathlib.Topology.MetricSpace.Basic
+import Mathlib.Topology.Constructions
+import Mathlib.Algebra.Order.Field.Basic
+import Mathlib.LinearAlgebra.Matrix.Notation
+import Mathlib.Tactic.Linarith
+import Mathlib.Tactic.NormNum
+import Mathlib.Tactic.Positivity
+import Mathlib.Tactic.FieldSimp
+import Mathlib.Tactic.Ring
 import Tfnp.Brouwer.Brouwer_product
 
 /-!

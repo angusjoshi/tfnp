@@ -4,12 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Angus Joshi
 -/
 
-import Mathlib.Data.Real.Basic
-import Mathlib.Order.CompleteLattice.Finset
-import Mathlib.Algebra.Order.AbsoluteValue.Basic
 import Mathlib.Analysis.SpecialFunctions.Log.Basic
 import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
-import Mathlib.Analysis.InnerProductSpace.EuclideanDist
+import Mathlib.Topology.MetricSpace.Pseudo.Pi
+import Mathlib.Tactic.Positivity
 import Tfnp.QueryModel
 import Tfnp.Shrinking
 import Tfnp.Brouwer.Cube

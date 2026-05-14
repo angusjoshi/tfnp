@@ -7,7 +7,14 @@ mathlib (this project tracks `6cf3ab1c…`; upstream targets an older pin).
 The file is included verbatim except for: updated `import` paths
 (`Gametheory.X` → `Tfnp.Brouwer.X`), and isolated patches noted below.
 -/
-import Mathlib
+import Mathlib.Analysis.Convex.StdSimplex
+import Mathlib.Algebra.BigOperators.Field
+import Mathlib.Algebra.Order.BigOperators.Group.Finset
+import Mathlib.Data.PNat.Basic
+import Mathlib.Tactic.Linarith
+import Mathlib.Tactic.Positivity
+import Mathlib.Tactic.NormNum
+import Mathlib.Tactic.Push
 import Tfnp.Brouwer.Brouwer
 
 -- Vendored file: suppress style/deprecation linters. See README for porting status.
