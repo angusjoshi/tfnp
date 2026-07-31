@@ -13,6 +13,7 @@ import Mathlib.Tactic.Positivity
 import Mathlib.Tactic.FieldSimp
 import Mathlib.Tactic.Ring
 import Tfnp.Brouwer.Brouwer_product
+import Tfnp.Box
 
 /-!
 # Brouwer's fixed-point theorem on a closed cube `[a, b]^k`
@@ -26,10 +27,6 @@ homeomorphism `[a, b] ≃ stdSimplex ℝ (Fin 2)`, `t ↦ ((t-a)/(b-a), (b-t)/(b
 -/
 
 open Filter Topology
-
-/-- The closed `k`-dimensional box `[a, b]^k`. -/
-def CubeBox (a b : ℝ) (k : ℕ) : Set (Fin k → ℝ) :=
-  { x | ∀ i, a ≤ x i ∧ x i ≤ b }
 
 /-- **Brouwer's fixed-point theorem on a closed cube.** Every continuous self-map
 of `[a, b]^k` (with `a ≤ b`) has a fixed point in the cube. -/

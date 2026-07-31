@@ -10,7 +10,7 @@ import Mathlib.Topology.MetricSpace.Pseudo.Pi
 import Mathlib.Tactic.Positivity
 import Tfnp.QueryModel
 import Tfnp.Shrinking
-import Tfnp.Brouwer.Cube
+import Tfnp.Box
 
 /-!
 # Query complexity of `ℓ∞`-contraction map fixpoint computation
@@ -40,9 +40,12 @@ The follow-up paper of Haslebacher, Lill, Schnider, Weber
   tree that asks the oracle for `f x` and continues with the response.
 - `Pyramid i ϕ x`: the CLY "pyramid" — points `y` where coordinate `i` (with
   sign `ϕ`) realises the `ℓ∞` distance `‖y − x‖∞`.
+- `fermatWeber T`: `Φ(c) = ∑_{y ∈ T} ‖y − c‖∞`, the `ℓ∞` Fermat–Weber
+  functional. Its minimisers are exactly the balanced points of `T`, which is
+  how `exists_balanced_point_box` avoids Brouwer entirely.
 - `Around r x`: the closed `ℓ∞`-ball of radius `r` around `x`.
 - `pyramid_cover`: every point lies in some pyramid based at every other point.
-- `cly_query_complexity`: statement of CLY's main theorem (not yet proven).
+- `cly_query_complexity` (in `Tfnp/Algorithm.lean`): CLY's main theorem.
 
 ## References
 
@@ -443,225 +446,336 @@ noncomputable def EVEN (n k : ℕ) : Finset (IntVec k) :=
   unfold EVEN
   simp [Finset.mem_filter]
 
-/-! ### Brouwer's fixed-point theorem on a closed cube
+/-! ### Balanced points via convex minimisation
 
-Mathlib does not yet have Brouwer's fixed-point theorem in dimension `> 1`.
-Only the 1D IVT-based fixed-point lemma (`exists_mem_Icc_isFixedPt`) and the
-Banach contraction-mapping theorem (`ContractingWith.exists_fixedPoint`) are
-available; the building blocks for Brouwer (singular homology, simplicial
-complexes, the topological simplex) live in `Mathlib.AlgebraicTopology` but
-have not been assembled into the theorem.
+CLY obtain their balanced point from Brouwer's fixed-point theorem applied to
+an auxiliary self-map built out of signed pyramid volumes (their Lemma 6),
+followed by a limit argument (Lemma 7) and a parity-aware rounding step
+(Lemma 8).
 
-We use `brouwer_cube` from `Tfnp.Brouwer.Cube`, which is derived from
-`Brouwer_Product` (a product-of-simplices form of Brouwer proved via Scarf's
-combinatorial lemma — vendored from `math-xmum/Brouwer`).
+None of that is necessary. The balanced point is exactly a minimiser of the
+**`ℓ∞` Fermat–Weber functional**
 
-`CubeBox a b k = {x : Vec k | ∀ i, a ≤ x i ∧ x i ≤ b}` is the closed
-`k`-dimensional box `[a, b]^k`. -/
+`Φ(c) = ∑_{y ∈ T} ‖y − c‖∞`,
 
-/-! ### Brouwer-based construction of the balanced point
+a convex, piecewise-linear function of `c`. Existence is compactness, not
+Brouwer, and the balance property is the first-order optimality condition. The
+underlying reason this works in `ℓ∞` specifically is that the subgradients of
+`‖·‖∞` are the vertices `±eᵢ` of the dual (cross-polytope) ball, so the
+"direction from `c` to `y`" is quantised into exactly the `2k` pyramid classes.
 
-CLY's proof of balanced-point existence proceeds in three steps:
+The proof below avoids subdifferential calculus entirely. Writing
+`σᵢ = signR (s i) ∈ {±1}` and
 
-* **Thickening (Definition before Lemma 6):** For each integer parameter `t ≥ 4`,
-  define `Sᵗ = ⋃_{x ∈ T} B(x, 1/t) ⊂ [−1/4, n+1/4]^k`, the union of small balls
-  around each point of `T`. (CLY uses ℓ₂-balls; the geometric content is the
-  same for any small neighbourhood, so we model it as a small ℓ∞-box.)
+* `A(y) = maxᵢ σᵢ (yᵢ − cᵢ)`  (`sgnSup s c y`),
+* `B(y) = maxᵢ σᵢ (cᵢ − yᵢ)`  (`sgnSup s y c`),
 
-* **Lemma 6 (continuous balanced point, Brouwer):** Define the continuous map
-  `auxMap : [−1/4, n+1/4]^k → ℝ^k` by
-  `auxMap(p) i = p i + (vol(𝒫_i(p, +1) ∩ Sᵗ) − vol(𝒫_i(p, −1) ∩ Sᵗ)) / (n+½)^{k−1}`,
-  apply `brouwer_cube`, get a fixed point `p*` where signed pyramid volumes
-  balance: `vol(𝒫_i(p*, +1) ∩ Sᵗ) = vol(𝒫_i(p*, −1) ∩ Sᵗ)` for every `i`.
+there are three identities:
 
-* **Lemma 8 (rounding):** Round each `p*ᵢ` to a nearby integer `q*ᵢ ∈ [0, n]`
-  with `|p*ᵢ − q*ᵢ| ≤ 1/2`; break ties (`p*ᵢ` is a half-integer) so that `q*ᵢ`
-  is odd. The pyramid containment `𝒫_i(p*, ±1) ∩ T ⊆ 𝒫_i(q*, ±1) ∩ T` then
-  transfers the volume balance to a discrete count balance.
+* `‖y − c‖∞ = max (A y) (B y)`                     (`linfDist_eq_max_sgnSup`)
+* `y ∈ ⋃ᵢ 𝒫ᵢ(c, sᵢ) ↔ B y ≤ A y`                   (`mem_pyramidUnion_iff`)
+* `‖y − (c − h·σ)‖∞ = max (A y + h) (B y − h)`     (`linfDist_shiftBase`)
 
-The full chain Lemma 6 → Lemma 7 (limit `t → ∞`) → Lemma 8 yields the discrete
-balanced-point bound `|T ∩ ⋃ᵢ 𝒫_i(q*, sᵢ)| ≥ |T|/2` for every sign vector. -/
+so translating `c` by `−h·σ` moves each term of `Φ` by exactly `+h` (if `y` is
+captured by the pyramid union) or `−h` (if not, and `h` is below the finite gap
+`min (B y − A y) / 2`). Minimality of `Φ` at `c` then says immediately that at
+least half of `T` is captured — for every one of the `2^k` sign vectors at
+once. -/
 
-/-- The CLY thickening `Sᵗ = ⋃_{x ∈ T} {y : ‖y − x‖∞ < 1/t}` — a union of small
-ℓ∞-boxes around each integer point of `T`. (CLY uses ℓ₂-balls; switching to
-ℓ∞-boxes does not change the argument and makes volumes easier to compute.) -/
-noncomputable def Thickening {k : ℕ} (T : Finset (IntVec k)) (t : ℕ) : Set (Vec k) :=
-  ⋃ x ∈ T, Metric.ball (x.toVec) (1 / (t : ℝ))
+attribute [local instance] Classical.propDecidable
 
-/-- The Lebesgue volume of a set in `Vec k`, as a real number. -/
-noncomputable def vol {k : ℕ} (S : Set (Vec k)) : ℝ :=
-  (MeasureTheory.volume S).toReal
+section Balanced
 
-/-- The auxiliary self-map used in CLY's Lemma 6. The Brouwer fixed point of
-this map will be the continuous balanced point. -/
-noncomputable def auxMap {k : ℕ} (n : ℕ) (T : Finset (IntVec k)) (t : ℕ)
-    (p : Vec k) : Vec k := fun i =>
-  p i + (vol (Pyramid i true p ∩ Thickening T t) -
-         vol (Pyramid i false p ∩ Thickening T t)) / ((n : ℝ) + 1/2) ^ (k - 1)
+variable [NeZero k]
 
-/-- **Boundary lemma (lower face).** At a point `p` whose `i`-th coordinate sits
-on the lower boundary `-1/4` of the working cube, the `−`-pyramid `𝒫_i(p, −1)`
-is disjoint from the thickening `Sᵗ` (for `t ≥ 4`). Reason: `𝒫_i(p, −1)` is
-contained in `{y : y i ≤ -1/4}`, while every `y ∈ Sᵗ` has `y i > -1/t ≥ -1/4`
-(since `T ⊆ EVEN(n,k) ⊆ [0,n]^k` gives `x i ≥ 0` for all `x ∈ T`). -/
-lemma pyramid_false_inter_thickening_eq_empty_of_boundary
-    {k : ℕ} (n : ℕ) (T : Finset (IntVec k)) (hT : T ⊆ EVEN n k)
-    (t : ℕ) (ht : 4 ≤ t) (p : Vec k) (i : Fin k) (hp : p i = -1 / 4) :
-    Pyramid i false p ∩ Thickening T t = ∅ := by
-  refine Set.eq_empty_iff_forall_notMem.mpr ?_
-  intro y hy
-  obtain ⟨hpyr, hthick⟩ := hy
-  rw [mem_pyramid_false_iff] at hpyr
-  have hnn : 0 ≤ linfDist y p := linfDist_nonneg y p
-  have hy_le : y i ≤ p i := by linarith
-  rw [hp] at hy_le
-  -- Extract a ball witness for the thickening.
-  simp only [Thickening, Set.mem_iUnion] at hthick
-  obtain ⟨x, hxT, hyx⟩ := hthick
-  rw [Metric.mem_ball] at hyx
-  have ht_pos : (0 : ℝ) < 1 / (t : ℝ) := by
-    apply div_pos one_pos
-    exact_mod_cast Nat.lt_of_lt_of_le (by norm_num) ht
-  -- Coordinate-wise distance bound.
-  have hyi_close : dist (y i) (x.toVec i) < 1 / (t : ℝ) :=
-    dist_pi_lt_iff ht_pos |>.mp hyx i
-  have hyi_close' : |y i - (x i : ℝ)| < 1 / (t : ℝ) := by
-    have := hyi_close
-    rw [IntVec.toVec_apply, Real.dist_eq] at this
-    exact this
-  -- `x ∈ EVEN(n,k)` gives `0 ≤ x i`.
-  have hxev : x ∈ EVEN n k := hT hxT
-  rw [mem_EVEN] at hxev
-  have hxi_nn : (0 : ℝ) ≤ (x i : ℝ) := by exact_mod_cast (hxev.1 i).1
-  -- Combine bounds: `y i > x i - 1/t ≥ -1/t ≥ -1/4`, contradicting `y i ≤ -1/4`.
-  have hti_le : (1 : ℝ) / (t : ℝ) ≤ 1 / 4 := by
-    apply div_le_div_of_nonneg_left one_pos.le (by norm_num)
-    exact_mod_cast ht
-  have habs := abs_lt.mp hyi_close'
-  linarith
+/-- `Fin k` is nonempty when `k ≠ 0`. -/
+lemma univ_nonempty_fin : (Finset.univ : Finset (Fin k)).Nonempty :=
+  ⟨⟨0, Nat.pos_of_ne_zero (NeZero.ne k)⟩, Finset.mem_univ _⟩
 
-/-- **Boundary lemma (upper face).** Symmetric: at `p i = n + 1/4`, the `+`-pyramid
-is disjoint from the thickening (for `t ≥ 4`). -/
-lemma pyramid_true_inter_thickening_eq_empty_of_boundary
-    {k : ℕ} (n : ℕ) (T : Finset (IntVec k)) (hT : T ⊆ EVEN n k)
-    (t : ℕ) (ht : 4 ≤ t) (p : Vec k) (i : Fin k) (hp : p i = (n : ℝ) + 1 / 4) :
-    Pyramid i true p ∩ Thickening T t = ∅ := by
-  refine Set.eq_empty_iff_forall_notMem.mpr ?_
-  intro y hy
-  obtain ⟨hpyr, hthick⟩ := hy
-  rw [mem_pyramid_true_iff] at hpyr
-  have hnn : 0 ≤ linfDist y p := linfDist_nonneg y p
-  have hy_ge : p i ≤ y i := by linarith
-  rw [hp] at hy_ge
-  simp only [Thickening, Set.mem_iUnion] at hthick
-  obtain ⟨x, hxT, hyx⟩ := hthick
-  rw [Metric.mem_ball] at hyx
-  have ht_pos : (0 : ℝ) < 1 / (t : ℝ) := by
-    apply div_pos one_pos
-    exact_mod_cast Nat.lt_of_lt_of_le (by norm_num) ht
-  have hyi_close : dist (y i) (x.toVec i) < 1 / (t : ℝ) :=
-    dist_pi_lt_iff ht_pos |>.mp hyx i
-  have hyi_close' : |y i - (x i : ℝ)| < 1 / (t : ℝ) := by
-    rw [IntVec.toVec_apply, Real.dist_eq] at hyi_close; exact hyi_close
-  have hxev : x ∈ EVEN n k := hT hxT
-  rw [mem_EVEN] at hxev
-  have hxi_le : ((x i : ℝ)) ≤ (n : ℝ) := by exact_mod_cast (hxev.1 i).2
-  have hti_le : (1 : ℝ) / (t : ℝ) ≤ 1 / 4 := by
-    apply div_le_div_of_nonneg_left one_pos.le (by norm_num)
-    exact_mod_cast ht
-  have habs := abs_lt.mp hyi_close'
-  linarith
+/-- Multiplying by a `±1` sign does not change the absolute value. -/
+lemma abs_signR_mul (b : Bool) (x : ℝ) : |signR b * x| = |x| := by
+  rw [abs_mul]; cases b <;> simp [signR]
 
-/-- **CLY Lemma 6 (continuous balanced point).** For any candidate set
-`T ⊆ EVEN(n, k)` and thickening parameter `t ≥ 4`, there is a point
-`p* ∈ [−1/4, n+1/4]^k` at which the signed pyramid volumes balance on every
-coordinate.
+/-- `signR b * x ≤ |x|`. -/
+lemma signR_mul_le_abs (b : Bool) (x : ℝ) : signR b * x ≤ |x| :=
+  (le_abs_self _).trans_eq (abs_signR_mul b x)
 
-The proof applies Brouwer not to `auxMap` itself (whose `MapsTo` property is
-delicate to verify) but to a *clipped* variant `g = clip ∘ auxMap` which
-trivially maps the cube into itself. At any Brouwer fixed point `p` of `g`,
-the two boundary lemmas force the clipping to be inactive on every coordinate:
-if `p i = -1/4` then `vol−` vanishes, making the unclipped shift non-negative
-and consistent only with `auxMap p i = p i`; symmetrically at `p i = n+1/4`;
-and at interior `p i`, the clipping is trivially inactive. -/
-theorem exists_continuous_balanced_point {k : ℕ} (n : ℕ) (T : Finset (IntVec k))
-    (hT : T ⊆ EVEN n k) (t : ℕ) (ht : 4 ≤ t) :
-    ∃ p : Vec k, p ∈ CubeBox (-1 / 4) (n + 1 / 4) k ∧
-      ∀ i : Fin k, vol (Pyramid i true p ∩ Thickening T t) =
-                   vol (Pyramid i false p ∩ Thickening T t) := by
-  have hcube : (-1 / 4 : ℝ) ≤ ((n : ℝ) + 1 / 4) := by
-    linarith [show (0 : ℝ) ≤ n from Nat.cast_nonneg n]
-  -- Clipped auxiliary map: forces the output into the cube.
-  let g : Vec k → Vec k :=
-    fun p i => max (-1 / 4 : ℝ) (min ((n : ℝ) + 1 / 4) (auxMap n T t p i))
-  have hg_maps : Set.MapsTo g (CubeBox (-1 / 4) (n + 1 / 4) k)
-                              (CubeBox (-1 / 4) (n + 1 / 4) k) := by
-    intro p _ i
-    refine ⟨?_, ?_⟩
-    · exact le_max_left _ _
-    · exact max_le hcube (min_le_left _ _)
-  have hg_cont : ContinuousOn g (CubeBox (-1 / 4) (n + 1 / 4) k) := by
-    -- `g` is `max ∘ min ∘ auxMap`. Clipping is continuous; `auxMap` continuity
-    -- reduces to continuity of `p ↦ vol(𝒫_i(p, ±1) ∩ Sᵗ)`, deferred.
-    sorry
-  obtain ⟨p, hp_mem, hp_fix⟩ := brouwer_cube hcube g hg_cont hg_maps
-  refine ⟨p, hp_mem, ?_⟩
-  intro i
-  -- Show the unclipped `auxMap p i = p i` by case analysis on `auxMap p i`.
-  have hi : g p i = p i := by rw [hp_fix]
-  have hvol_nn_pos : 0 ≤ vol (Pyramid i true p ∩ Thickening T t) := by
-    unfold vol; exact ENNReal.toReal_nonneg
-  have hvol_nn_neg : 0 ≤ vol (Pyramid i false p ∩ Thickening T t) := by
-    unfold vol; exact ENNReal.toReal_nonneg
-  have hdenom_pos : (0 : ℝ) < ((n : ℝ) + 1 / 2) ^ (k - 1) := by positivity
-  have haux_eq : auxMap n T t p i = p i := by
-    by_cases hcase1 : auxMap n T t p i < -1 / 4
-    · -- Clipping floors `g p i` to `-1/4`. Then `p i = -1/4`.
-      have hclip : g p i = -1 / 4 := by
-        change max (-1 / 4 : ℝ) (min ((n : ℝ) + 1 / 4) (auxMap n T t p i)) = -1 / 4
-        rw [min_eq_right (by linarith : auxMap n T t p i ≤ (n : ℝ) + 1 / 4),
-            max_eq_left (le_of_lt hcase1)]
-      rw [hclip] at hi
-      have hpi_eq : p i = -1 / 4 := hi.symm
-      have hempty := pyramid_false_inter_thickening_eq_empty_of_boundary
-        n T hT t ht p i hpi_eq
-      have hvol_neg_zero : vol (Pyramid i false p ∩ Thickening T t) = 0 := by
-        rw [hempty]; unfold vol; simp
-      unfold auxMap at hcase1
-      rw [hvol_neg_zero, sub_zero] at hcase1
-      have := div_nonneg hvol_nn_pos hdenom_pos.le
+/-- Adding a constant commutes with a nonempty finite `sup'`. -/
+lemma sup'_add_const {ι : Type*} (s : Finset ι) (H : s.Nonempty) (f : ι → ℝ) (a : ℝ) :
+    s.sup' H (fun i => f i + a) = s.sup' H f + a := by
+  refine le_antisymm (Finset.sup'_le _ _ fun i hi => ?_) ?_
+  · linarith [Finset.le_sup' f hi]
+  · have hstep : ∀ i ∈ s, f i ≤ s.sup' H (fun j => f j + a) - a := by
+      intro i hi
+      have := Finset.le_sup' (fun j => f j + a) hi
       linarith
-    · by_cases hcase2 : (n : ℝ) + 1 / 4 < auxMap n T t p i
-      · -- Clipping caps `g p i` at `n+1/4`. Then `p i = n+1/4`.
-        have hclip : g p i = (n : ℝ) + 1 / 4 := by
-          change max (-1 / 4 : ℝ) (min ((n : ℝ) + 1 / 4) (auxMap n T t p i)) =
-                 (n : ℝ) + 1 / 4
-          rw [min_eq_left (le_of_lt hcase2)]
-          exact max_eq_right hcube
-        rw [hclip] at hi
-        have hpi_eq : p i = (n : ℝ) + 1 / 4 := hi.symm
-        have hempty := pyramid_true_inter_thickening_eq_empty_of_boundary
-          n T hT t ht p i hpi_eq
-        have hvol_pos_zero : vol (Pyramid i true p ∩ Thickening T t) = 0 := by
-          rw [hempty]; unfold vol; simp
-        unfold auxMap at hcase2
-        rw [hvol_pos_zero, zero_sub, neg_div] at hcase2
-        have := div_nonneg hvol_nn_neg hdenom_pos.le
-        linarith
-      · -- `auxMap p i ∈ [-1/4, n+1/4]`. Clipping inactive: `g p i = auxMap p i`.
-        push Not at hcase1 hcase2
-        have hclip : g p i = auxMap n T t p i := by
-          change max (-1 / 4 : ℝ) (min ((n : ℝ) + 1 / 4) (auxMap n T t p i)) =
-                 auxMap n T t p i
-          rw [min_eq_right hcase2, max_eq_right hcase1]
-        rw [hclip] at hi
-        exact hi
-  unfold auxMap at haux_eq
-  have hdiff_div : (vol (Pyramid i true p ∩ Thickening T t) -
-                    vol (Pyramid i false p ∩ Thickening T t)) /
-                    ((n : ℝ) + 1 / 2) ^ (k - 1) = 0 := by linarith
-  have hdiff := (div_eq_zero_iff.mp hdiff_div).resolve_right hdenom_pos.ne'
-  linarith
+    have := Finset.sup'_le H f hstep
+    linarith
+
+/-- The **signed support function** `maxᵢ σᵢ (yᵢ − cᵢ)`, where `σᵢ = ±1` is the
+sign selected by `s`. With the arguments in the other order,
+`sgnSup s y c = maxᵢ σᵢ (cᵢ − yᵢ)`. -/
+noncomputable def sgnSup (s : Fin k → Bool) (c y : Vec k) : ℝ :=
+  Finset.univ.sup' univ_nonempty_fin (fun i => signR (s i) * (y i - c i))
+
+lemma le_sgnSup (s : Fin k → Bool) (c y : Vec k) (i : Fin k) :
+    signR (s i) * (y i - c i) ≤ sgnSup s c y :=
+  Finset.le_sup' (f := fun j => signR (s j) * (y j - c j)) (Finset.mem_univ i)
+
+lemma sgnSup_le {s : Fin k → Bool} {c y : Vec k} {r : ℝ}
+    (h : ∀ i, signR (s i) * (y i - c i) ≤ r) : sgnSup s c y ≤ r :=
+  Finset.sup'_le _ _ fun i _ => h i
+
+lemma exists_eq_sgnSup (s : Fin k → Bool) (c y : Vec k) :
+    ∃ i : Fin k, signR (s i) * (y i - c i) = sgnSup s c y := by
+  obtain ⟨i, _, hi⟩ :=
+    Finset.exists_mem_eq_sup' (univ_nonempty_fin (k := k))
+      (fun j => signR (s j) * (y j - c j))
+  exact ⟨i, hi.symm⟩
+
+/-- **Identity 1.** The `ℓ∞` distance splits along any sign vector:
+`‖y − c‖∞ = max (maxᵢ σᵢ (yᵢ − cᵢ)) (maxᵢ σᵢ (cᵢ − yᵢ))`. -/
+lemma linfDist_eq_max_sgnSup (s : Fin k → Bool) (c y : Vec k) :
+    linfDist y c = max (sgnSup s c y) (sgnSup s y c) := by
+  have hne := univ_nonempty_fin (k := k)
+  have habs0 : ∀ i : Fin k, |y i - c i| = max (y i - c i) (c i - y i) := by
+    intro i
+    rcases le_total (c i) (y i) with h' | h'
+    · rw [abs_of_nonneg (by linarith), max_eq_left (by linarith)]
+    · rw [abs_of_nonpos (by linarith), max_eq_right (by linarith)]; ring
+  have habs : ∀ i : Fin k,
+      |y i - c i| = max (signR (s i) * (y i - c i)) (signR (s i) * (c i - y i)) := by
+    intro i
+    cases h : s i
+    · simp only [signR_false, neg_one_mul, neg_sub]
+      rw [max_comm]; exact habs0 i
+    · simp only [signR_true, one_mul]; exact habs0 i
+  refine le_antisymm ?_ ?_
+  · unfold linfDist
+    rw [dif_pos hne]
+    refine Finset.sup'_le _ _ fun i _ => ?_
+    rw [habs i]
+    exact max_le_max (le_sgnSup s c y i) (le_sgnSup s y c i)
+  · refine max_le (sgnSup_le fun i => ?_) (sgnSup_le fun i => ?_)
+    · exact (signR_mul_le_abs _ _).trans (abs_sub_le_linfDist y c i)
+    · have hcy := abs_sub_le_linfDist y c i
+      rw [abs_sub_comm] at hcy
+      exact (signR_mul_le_abs _ _).trans hcy
+
+/-- **Identity 2.** A point is captured by the pyramid union `⋃ᵢ 𝒫ᵢ(c, sᵢ)`
+exactly when the `+`-side signed support dominates the `−`-side one. -/
+lemma mem_pyramidUnion_iff (s : Fin k → Bool) (c y : Vec k) :
+    (∃ i : Fin k, y ∈ Pyramid i (s i) c) ↔ sgnSup s y c ≤ sgnSup s c y := by
+  constructor
+  · rintro ⟨i, hi⟩
+    rw [mem_pyramid_iff_sign, linfDist_eq_max_sgnSup s c y] at hi
+    have h1 : sgnSup s y c ≤ max (sgnSup s c y) (sgnSup s y c) := le_max_right _ _
+    rw [← hi] at h1
+    exact h1.trans (le_sgnSup s c y i)
+  · intro hBA
+    obtain ⟨i, hi⟩ := exists_eq_sgnSup s c y
+    refine ⟨i, ?_⟩
+    rw [mem_pyramid_iff_sign, linfDist_eq_max_sgnSup s c y, max_eq_left hBA]
+    exact hi
+
+/-- Translating the base point by `−h·σ`. -/
+noncomputable def shiftBase (s : Fin k → Bool) (c : Vec k) (h : ℝ) : Vec k :=
+  fun i => c i - h * signR (s i)
+
+lemma sgnSup_shiftBase_left (s : Fin k → Bool) (c y : Vec k) (h : ℝ) :
+    sgnSup s (shiftBase s c h) y = sgnSup s c y + h := by
+  have key : ∀ i : Fin k,
+      signR (s i) * (y i - shiftBase s c h i) = signR (s i) * (y i - c i) + h := by
+    intro i
+    have hsq := signR_sq (s i)
+    have e : signR (s i) * (y i - shiftBase s c h i)
+        = signR (s i) * (y i - c i) + h * (signR (s i) * signR (s i)) := by
+      simp only [shiftBase]; ring
+    rw [e, hsq, mul_one]
+  unfold sgnSup
+  rw [Finset.sup'_congr univ_nonempty_fin rfl (fun i _ => key i)]
+  exact sup'_add_const _ _ _ _
+
+lemma sgnSup_shiftBase_right (s : Fin k → Bool) (c y : Vec k) (h : ℝ) :
+    sgnSup s y (shiftBase s c h) = sgnSup s y c - h := by
+  have key : ∀ i : Fin k,
+      signR (s i) * (shiftBase s c h i - y i) = signR (s i) * (c i - y i) + (-h) := by
+    intro i
+    have hsq := signR_sq (s i)
+    have e : signR (s i) * (shiftBase s c h i - y i)
+        = signR (s i) * (c i - y i) + (-(h * (signR (s i) * signR (s i)))) := by
+      simp only [shiftBase]; ring
+    rw [e, hsq, mul_one]
+  unfold sgnSup
+  rw [Finset.sup'_congr univ_nonempty_fin rfl (fun i _ => key i), sup'_add_const]
+  ring
+
+/-- **Identity 3.** The effect of the translation on a single distance term. -/
+lemma linfDist_shiftBase (s : Fin k → Bool) (c y : Vec k) (h : ℝ) :
+    linfDist y (shiftBase s c h) = max (sgnSup s c y + h) (sgnSup s y c - h) := by
+  rw [linfDist_eq_max_sgnSup s (shiftBase s c h) y, sgnSup_shiftBase_left,
+    sgnSup_shiftBase_right]
+
+/-! #### The Fermat–Weber functional -/
+
+/-- `Φ(c) = ∑_{y ∈ T} ‖y − c‖∞`, the `ℓ∞` Fermat–Weber functional of `T`. -/
+noncomputable def fermatWeber (T : Finset (Vec k)) (c : Vec k) : ℝ :=
+  ∑ y ∈ T, linfDist y c
+
+/-- `linfDist` is the metric of the sup-metric product `Fin k → ℝ`. -/
+lemma linfDist_eq_dist (x y : Vec k) : linfDist x y = dist x y := by
+  refine le_antisymm ?_ ?_
+  · unfold linfDist
+    rw [dif_pos (univ_nonempty_fin (k := k))]
+    refine Finset.sup'_le _ _ fun i _ => ?_
+    rw [← Real.dist_eq]
+    exact dist_le_pi_dist x y i
+  · refine (dist_pi_le_iff (linfDist_nonneg x y)).mpr fun i => ?_
+    rw [Real.dist_eq]
+    unfold linfDist
+    rw [dif_pos (univ_nonempty_fin (k := k))]
+    exact Finset.le_sup' (f := fun j => |x j - y j|) (Finset.mem_univ i)
+
+lemma continuous_linfDist_right (y : Vec k) :
+    Continuous (fun c : Vec k => linfDist y c) := by
+  have he : (fun c : Vec k => linfDist y c) = fun c : Vec k => dist y c := by
+    funext c; exact linfDist_eq_dist y c
+  rw [he]
+  exact continuous_const.dist continuous_id
+
+lemma continuous_fermatWeber (T : Finset (Vec k)) : Continuous (fermatWeber T) := by
+  unfold fermatWeber
+  exact continuous_finsetSum _ fun y _ => continuous_linfDist_right y
+
+omit [NeZero k] in
+/-- The box `[lo, hi]^k` is compact. -/
+lemma isCompact_cubeBox (lo hi : ℝ) : IsCompact (CubeBox lo hi k) := by
+  have hpi : CubeBox lo hi k = Set.univ.pi (fun _ : Fin k => Set.Icc lo hi) := by
+    ext x
+    simp only [CubeBox, Set.mem_setOf_eq, Set.mem_univ_pi, Set.mem_Icc]
+  rw [hpi]
+  exact isCompact_univ_pi fun _ => isCompact_Icc
+
+/-- Clamping a point into `[lo, hi]^k` coordinatewise. -/
+noncomputable def clampBox (lo hi : ℝ) (z : Vec k) : Vec k :=
+  fun i => max lo (min hi (z i))
+
+omit [NeZero k] in
+lemma clampBox_mem (lo hi : ℝ) (hlohi : lo ≤ hi) (z : Vec k) :
+    clampBox lo hi z ∈ CubeBox lo hi k :=
+  fun _ => ⟨le_max_left _ _, max_le hlohi (min_le_left _ _)⟩
+
+/-- Clamping moves a point no further from any point already inside the box. -/
+lemma abs_sub_clamp_le {lo hi a t : ℝ} (h1 : lo ≤ a) (h2 : a ≤ hi) :
+    |a - max lo (min hi t)| ≤ |a - t| := by
+  rcases le_total t lo with hlo | hlo
+  · rw [min_eq_right (hlo.trans (h1.trans h2)), max_eq_left hlo,
+      abs_of_nonneg (by linarith), abs_of_nonneg (by linarith)]
+    linarith
+  · rcases le_total hi t with hhi | hhi
+    · rw [min_eq_left hhi, max_eq_right (h1.trans h2),
+        abs_of_nonpos (by linarith), abs_of_nonpos (by linarith)]
+      linarith
+    · rw [min_eq_right hhi, max_eq_right hlo]
+
+lemma linfDist_clampBox_le {lo hi : ℝ} {y : Vec k} (hy : ∀ i, lo ≤ y i ∧ y i ≤ hi)
+    (z : Vec k) : linfDist y (clampBox lo hi z) ≤ linfDist y z := by
+  have hne := univ_nonempty_fin (k := k)
+  unfold linfDist
+  rw [dif_pos hne, dif_pos hne]
+  refine Finset.sup'_le _ _ fun i _ => ?_
+  refine le_trans ?_ (Finset.le_sup' (f := fun j => |y j - z j|) (Finset.mem_univ i))
+  exact abs_sub_clamp_le (hy i).1 (hy i).2
+
+/-- The Fermat–Weber functional attains a **global** minimum at a point of any
+box containing `T`: minimising over the (compact) box suffices, because
+clamping into the box never increases any term. -/
+lemma exists_global_min_fermatWeber (lo hi : ℝ) (hlohi : lo ≤ hi) (T : Finset (Vec k))
+    (hT : ∀ y ∈ T, ∀ i, lo ≤ y i ∧ y i ≤ hi) :
+    ∃ c ∈ CubeBox lo hi k, ∀ z : Vec k, fermatWeber T c ≤ fermatWeber T z := by
+  have hne : (CubeBox lo hi k).Nonempty :=
+    ⟨fun _ => lo, fun _ => ⟨le_refl _, hlohi⟩⟩
+  obtain ⟨c, hc_mem, hc_min⟩ :=
+    (isCompact_cubeBox (k := k) lo hi).exists_isMinOn hne
+      (continuous_fermatWeber T).continuousOn
+  refine ⟨c, hc_mem, fun z => ?_⟩
+  refine le_trans (isMinOn_iff.mp hc_min _ (clampBox_mem lo hi hlohi z)) ?_
+  unfold fermatWeber
+  exact Finset.sum_le_sum fun y hy => linfDist_clampBox_le (hT y hy) z
+
+/-- **Balanced point, Brouwer-free.** For any finite `T` inside the box
+`[lo, hi]^k` there is a point `c` of that box such that, for *every* sign
+vector `s`, the pyramid union `⋃ᵢ 𝒫ᵢ(c, sᵢ)` captures at least half of `T`.
+
+`c` is any minimiser of the `ℓ∞` Fermat–Weber functional of `T`; the proof is
+the first-order optimality condition in the `2^k` directions `−σ`. -/
+theorem exists_balanced_point_box (lo hi : ℝ) (hlohi : lo ≤ hi) (T : Finset (Vec k))
+    (hT : ∀ y ∈ T, ∀ i, lo ≤ y i ∧ y i ≤ hi) :
+    ∃ c ∈ CubeBox lo hi k, ∀ s : Fin k → Bool,
+      T.card ≤ 2 * (T.filter (fun y => ∃ i, y ∈ Pyramid i (s i) c)).card := by
+  obtain ⟨c, hc_mem, hc_min⟩ := exists_global_min_fermatWeber lo hi hlohi T hT
+  refine ⟨c, hc_mem, fun s => ?_⟩
+  -- Split `T` into the captured part `K` and the rest `Bad = T \ K`.
+  set K := T.filter (fun y => ∃ i, y ∈ Pyramid i (s i) c) with hK_def
+  have hKT : K ⊆ T := Finset.filter_subset _ _
+  set Bad := T \ K with hBad_def
+  have hsplit : Bad.card + K.card = T.card := Finset.card_sdiff_add_card_eq_card hKT
+  have hK_mem : ∀ y ∈ K, sgnSup s y c ≤ sgnSup s c y := fun y hy =>
+    (mem_pyramidUnion_iff s c y).mp (Finset.mem_filter.mp hy).2
+  have hBad_mem : ∀ y ∈ Bad, sgnSup s c y < sgnSup s y c := by
+    intro y hy
+    rw [hBad_def, Finset.mem_sdiff] at hy
+    have hnot : ¬ ∃ i, y ∈ Pyramid i (s i) c := by
+      intro hex
+      exact hy.2 (Finset.mem_filter.mpr ⟨hy.1, hex⟩)
+    rw [mem_pyramidUnion_iff s c y] at hnot
+    exact lt_of_not_ge hnot
+  -- It suffices to show `|Bad| ≤ |K|`.
+  suffices hBK : Bad.card ≤ K.card by omega
+  rcases Finset.eq_empty_or_nonempty Bad with hBad_empty | hBad_ne
+  · simp [hBad_empty]
+  -- Translation strength: half the smallest gap over `Bad`.
+  set h : ℝ := (Bad.inf' hBad_ne (fun y => sgnSup s y c - sgnSup s c y)) / 2 with hh_def
+  have hinf_pos : 0 < Bad.inf' hBad_ne (fun y => sgnSup s y c - sgnSup s c y) := by
+    rw [Finset.lt_inf'_iff]
+    intro y hy
+    linarith [hBad_mem y hy]
+  have hh_pos : 0 < h := by rw [hh_def]; linarith
+  have hh_le : ∀ y ∈ Bad, 2 * h ≤ sgnSup s y c - sgnSup s c y := by
+    intro y hy
+    have hle := Finset.inf'_le (f := fun z => sgnSup s z c - sgnSup s c z) hy
+    rw [hh_def]
+    linarith
+  -- Each term of `Φ` moves by exactly `+h` (captured) or `−h` (not captured).
+  have hterm_K : ∀ y ∈ K, linfDist y (shiftBase s c h) = linfDist y c + h := by
+    intro y hy
+    have hba := hK_mem y hy
+    rw [linfDist_shiftBase, linfDist_eq_max_sgnSup s c y, max_eq_left hba,
+      max_eq_left (by linarith : sgnSup s y c - h ≤ sgnSup s c y + h)]
+  have hterm_Bad : ∀ y ∈ Bad, linfDist y (shiftBase s c h) = linfDist y c - h := by
+    intro y hy
+    have hlt := hBad_mem y hy
+    have hgap := hh_le y hy
+    rw [linfDist_shiftBase, linfDist_eq_max_sgnSup s c y, max_eq_right hlt.le,
+      max_eq_right (by linarith : sgnSup s c y + h ≤ sgnSup s y c - h)]
+  -- Add up: `Φ(c − hσ) = Φ(c) + h·|K| − h·|Bad|`, and `Φ(c)` is minimal.
+  have hsum : fermatWeber T (shiftBase s c h)
+      = fermatWeber T c + h * K.card - h * Bad.card := by
+    unfold fermatWeber
+    rw [← Finset.sum_sdiff (f := fun y => linfDist y (shiftBase s c h)) hKT,
+      ← Finset.sum_sdiff (f := fun y => linfDist y c) hKT,
+      ← hBad_def,
+      Finset.sum_congr rfl hterm_K, Finset.sum_congr rfl hterm_Bad,
+      Finset.sum_add_distrib, Finset.sum_sub_distrib]
+    simp only [Finset.sum_const, nsmul_eq_mul]
+    ring
+  have hmin := hc_min (shiftBase s c h)
+  rw [hsum] at hmin
+  have hmul : h * (Bad.card : ℝ) ≤ h * (K.card : ℝ) := by linarith
+  exact_mod_cast le_of_mul_le_mul_left hmul hh_pos
+
+end Balanced
+
 
 /-- **CLY Lemma 8 (rounding).** Given any real point `p* ∈ [−1/4, n+1/4]^k`,
 there is an integer point `q* ∈ IntCube n k` with `|p*ᵢ − q*ᵢ| ≤ 1/2` for every
@@ -787,83 +901,73 @@ lemma signed_coord_diff_bounds {k : ℕ} (p : Vec k) (q : IntVec k)
   have := abs_le.mp h2
   constructor <;> linarith
 
-/-- **Pyramid containment under rounding.** If `q*` is a rounding of `p*` as
-produced by `cly_rounding` (with appropriate tie-breaking), then for every
-integer point `y ∈ T ⊆ EVEN(n,k)` and every sign `ϕ`:
+/-- **Balanced-point existence, Brouwer-free.** For any finite candidate set
+`T ⊆ EVEN(n, k)` there is a *real* point `c ∈ [0, n]^k` such that for every
+sign vector `s`,
 
-`y.toVec ∈ Pyramid i ϕ p.toVec → y.toVec ∈ Pyramid i ϕ q.toVec`.
+`|T| ≤ 2 · |T ∩ {y : y.toVec ∈ ⋃ᵢ 𝒫ᵢ(c, sᵢ)}|`.
 
-The proof requires the **parity-aware** form of rounding (CLY Lemma 8 chooses
-`q*ᵢ` of odd parity when `p*ᵢ` is a half-integer). Under that, the equality
-`ϕ(y_i − p_i) = ‖y − p‖∞` lifts to `ϕ(y_i − q_i) = ‖y − q‖∞` by an
-integer-vs-half-integer parity argument. -/
-theorem pyramid_containment_under_rounding {k : ℕ} [NeZero k]
-    (n : ℕ) (T : Finset (IntVec k))
-    (_hT : T ⊆ EVEN n k) (p : Vec k) (q : IntVec k)
-    (_hq : q ∈ IntCube n k) (hpq : ∀ i, |p i - (q i : ℝ)| ≤ 1 / 2)
-    -- CLY's odd tie-break: whenever `p j` is a half-integer, `q j` is odd.
-    (_hparity : ∀ j, (∃ m : ℤ, p j = (m : ℝ) + 1 / 2) → Odd (q j)) :
-    ∀ y ∈ T, ∀ (i : Fin k) (ϕ : Bool),
-      y.toVec ∈ Pyramid i ϕ p → y.toVec ∈ Pyramid i ϕ q.toVec := by
-  intro y _ i ϕ hypyr
-  have _hbnds := signed_coord_diff_bounds p q hpq y.toVec i ϕ hypyr
-  have _h_Mq_lb := linfDist_ge_of_rounded p q hpq y.toVec
-  have _h_Mq_ub := linfDist_le_of_rounded p q hpq y.toVec
-  rw [mem_pyramid_iff_sign]
-  -- The proof goes: both `signR ϕ * (y_i - q_i)` and `linfDist y q` lie in
-  -- `[M_p − 1/2, M_p + 1/2]`. If they differ, the difference is 1 (both ints),
-  -- which forces `M_p` half-integer; then `p_i` and the coord `j` achieving the
-  -- larger value are both half-integer, so by `hparity`, `q_i` and `q_j` are
-  -- both odd; but their parities contradict (`β` odd, `β + 1` even but should be
-  -- `|y_j - q_j|` whose parity matches `q_j`'s — odd).
-  sorry
+This is `exists_balanced_point_box` transported along the injection
+`IntVec.toVec`. Two things vanish relative to CLY's route:
 
-/-- **Balanced-point existence (CLY, Lemmas 6+8).** For any finite candidate
-set `T ⊆ EVEN(n, k)`, there is an integer point `q ∈ IntCube n k` such that for
-every sign vector `s`,
+* Brouwer, the thickening `Sᵗ` and the `t → ∞` limit (their Lemmas 6, 7) are
+  replaced by "a convex continuous function on a compact box has a minimum";
+* the parity-aware rounding (their Lemma 8) is not needed at all. It exists
+  only to transfer a *volume* balance to a *counting* balance; here the balance
+  is obtained for the counting measure on `T` directly, and the ties it is
+  designed to handle are absorbed by the `max` in `sgnSup`.
 
-`|T| ≤ 2 · |T ∩ {y : y.toVec ∈ ⋃ᵢ 𝒫ᵢ(q.toVec, sᵢ)}|`.
-
-I.e., for every `s`, the pyramid union at `q` captures `≥ |T|/2` points of `T`.
-
-The CLY proof has two steps:
-
-1. **Continuous balanced point (Lemma 6).** Define a continuous self-map of
-   `[−1/4, n+1/4]^k`,
-   `fᵢ(p) := pᵢ + [vol(𝒫ᵢ(p,+1) ∩ S_T) − vol(𝒫ᵢ(p,−1) ∩ S_T)] / (n+½)^{k−1}`
-   where `S_T` thickens `T`. Brouwer's fixed-point theorem yields `p*` where
-   the signed pyramid volumes balance.
-
-2. **Rounding (Lemma 8).** Round `p*` to a nearby integer `q* ∈ [0:n]^k`,
-   breaking ties on parity so that the pyramid containments are preserved.
-
-Step 1 is reducible to `brouwer_cube` (Scarf-via-`Brouwer_Product`). Step 2 is purely
-constructive integer rounding. Filling these in is mechanical given the
-foundational pieces, but each is substantial in its own right — left as a
-sorry to be discharged in a follow-up. -/
-theorem exists_balanced_point_int (n : ℕ) {k : ℕ} (T : Set (IntVec k))
+The price is that the balanced point is a real point rather than an odd
+integer point — which is harmless, since `halving_from_balanced` and the
+algorithm only ever use it as a base for pyramids. -/
+theorem exists_balanced_point_real (n : ℕ) {k : ℕ} [NeZero k] (T : Set (IntVec k))
     (hTfin : T.Finite) (hTsub : ∀ y ∈ T, y ∈ EVEN n k) :
-    ∃ q : IntVec k, q ∈ IntCube n k ∧ ∀ s : Fin k → Bool,
+    ∃ c : Vec k, c ∈ CubeBox 0 n k ∧ ∀ s : Fin k → Bool,
       T.ncard ≤ 2 *
-        (T ∩ {y : IntVec k | ∃ i, y.toVec ∈ Pyramid i (s i) q.toVec}).ncard := by
-  -- Apply Lemma 6 (with `t = 5` as a representative; the actual analysis uses
-  -- `t → ∞`) to obtain the continuous balanced point `p ∈ [−1/4, n+1/4]^k`.
-  have hTsub_finset : hTfin.toFinset ⊆ EVEN n k := by
-    intro y hy; exact hTsub y (hTfin.mem_toFinset.mp hy)
-  obtain ⟨p, hp_cube, _hp_bal⟩ :=
-    exists_continuous_balanced_point (k := k) n hTfin.toFinset hTsub_finset 5 (by omega)
-  -- Apply Lemma 8 to round `p` to an integer point `q ∈ IntCube n k`.
-  obtain ⟨q, hq_cube, _hpq⟩ := cly_rounding n p hp_cube
-  refine ⟨q, hq_cube, ?_⟩
-  intro _s
-  -- The discrete bound `|T ∩ ⋃ᵢ 𝒫ᵢ(q.toVec, sᵢ)| ≥ |T| / 2` follows from:
-  -- (i)  Lemma 7 (limit `t → ∞`): the volume balance at `p` (`hp_bal`) gives a
-  --      discrete count balance, i.e., for any sign vector `s`,
-  --      `|T ∩ ⋃ᵢ 𝒫ᵢ(p, sᵢ)| ≥ |T| / 2`.
-  -- (ii) `pyramid_containment_under_rounding` transfers the count from `p` to
-  --      `q.toVec`, preserving the bound.
-  -- Step (i) is the substantive remaining work in CLY.
-  sorry
+        (T ∩ {y : IntVec k | ∃ i, y.toVec ∈ Pyramid i (s i) c}).ncard := by
+  have hinj : Function.Injective (IntVec.toVec (k := k)) := by
+    intro x y hxy
+    funext i
+    have h := congrFun hxy i
+    rw [IntVec.toVec_apply, IntVec.toVec_apply] at h
+    exact_mod_cast h
+  set S : Finset (Vec k) := hTfin.toFinset.image IntVec.toVec with hS_def
+  have hS_bound : ∀ y ∈ S, ∀ i, (0 : ℝ) ≤ y i ∧ y i ≤ (n : ℝ) := by
+    intro y hy i
+    rw [hS_def, Finset.mem_image] at hy
+    obtain ⟨z, hz, rfl⟩ := hy
+    have hz' := hTsub z (hTfin.mem_toFinset.mp hz)
+    rw [mem_EVEN] at hz'
+    obtain ⟨h1, h2⟩ := hz'.1 i
+    rw [IntVec.toVec_apply]
+    exact ⟨by exact_mod_cast h1, by exact_mod_cast h2⟩
+  obtain ⟨c, hc_mem, hc_bal⟩ :=
+    exists_balanced_point_box (k := k) 0 n (Nat.cast_nonneg n) S hS_bound
+  refine ⟨c, hc_mem, fun s => ?_⟩
+  have hcard_S : S.card = T.ncard := by
+    rw [hS_def, Finset.card_image_of_injective _ hinj,
+      Set.ncard_eq_toFinset_card T hTfin]
+  have himg : S.filter (fun y => ∃ i, y ∈ Pyramid i (s i) c)
+      = (hTfin.toFinset.filter
+          (fun z : IntVec k => ∃ i, z.toVec ∈ Pyramid i (s i) c)).image IntVec.toVec := by
+    rw [hS_def]
+    ext y
+    simp only [Finset.mem_filter, Finset.mem_image]
+    constructor
+    · rintro ⟨⟨z, hz, rfl⟩, hp⟩; exact ⟨z, ⟨hz, hp⟩, rfl⟩
+    · rintro ⟨z, ⟨hz, hp⟩, rfl⟩; exact ⟨⟨z, hz, rfl⟩, hp⟩
+  have hfin2 : (T ∩ {y : IntVec k | ∃ i, y.toVec ∈ Pyramid i (s i) c}).Finite :=
+    hTfin.subset Set.inter_subset_left
+  have hfilter : (S.filter (fun y => ∃ i, y ∈ Pyramid i (s i) c)).card
+      = (T ∩ {y : IntVec k | ∃ i, y.toVec ∈ Pyramid i (s i) c}).ncard := by
+    rw [himg, Finset.card_image_of_injective _ hinj,
+      Set.ncard_eq_toFinset_card _ hfin2]
+    congr 1
+    ext z
+    simp [Set.Finite.mem_toFinset, Finset.mem_filter]
+  rw [← hcard_S, ← hfilter]
+  exact hc_bal s
+
 
 /-- **Halving lemma (CLY Lemma 5, geometric core).** Given a balanced point `q`
 of `T`, the *shifted* base `b = q.toVec + 2·s.toReal` (where `s.toReal i` is `+1`
@@ -874,19 +978,19 @@ or `−1`) and the corresponding pyramid union captures **at most** half of `T`:
 Proof: combine the balanced-point hypothesis at `q` (captures `≥ |T|/2` with
 *flipped* signs) with `pyramid_disjoint_of_lt` (which makes the two pyramid
 unions disjoint), giving complementary halves of `T`. -/
-theorem halving_from_balanced (n : ℕ) {k : ℕ} (T : Set (IntVec k))
-    (hTfin : T.Finite) (q : IntVec k) (_hq : q ∈ IntCube n k)
+theorem halving_from_balanced {k : ℕ} (T : Set (IntVec k))
+    (hTfin : T.Finite) (c : Vec k)
     (hbal : ∀ s : Fin k → Bool, T.ncard ≤ 2 *
-      (T ∩ {y : IntVec k | ∃ i, y.toVec ∈ Pyramid i (s i) q.toVec}).ncard)
+      (T ∩ {y : IntVec k | ∃ i, y.toVec ∈ Pyramid i (s i) c}).ncard)
     (s : Fin k → Bool) :
-    let b : Vec k := q.toVec + fun i => if s i then 2 else -2
+    let b : Vec k := c + fun i => if s i then 2 else -2
     2 * (T ∩ {y : IntVec k | ∃ i, y.toVec ∈ Pyramid i (s i) b}).ncard ≤ T.ncard := by
   intro b
-  have hb_eq : b = q.toVec + fun i => 2 * signR (s i) := by
+  have hb_eq : b = c + fun i => 2 * signR (s i) := by
     funext i
     simp only [b, Pi.add_apply]
     cases s i <;> simp [signR]
-  set A : Set (IntVec k) := T ∩ {y | ∃ i, y.toVec ∈ Pyramid i (!s i) q.toVec} with hA_def
+  set A : Set (IntVec k) := T ∩ {y | ∃ i, y.toVec ∈ Pyramid i (!s i) c} with hA_def
   set B : Set (IntVec k) := T ∩ {y | ∃ i, y.toVec ∈ Pyramid i (s i) b} with hB_def
   have hA_fin : A.Finite := hTfin.subset Set.inter_subset_left
   have hB_fin : B.Finite := hTfin.subset Set.inter_subset_left
@@ -896,7 +1000,7 @@ theorem halving_from_balanced (n : ℕ) {k : ℕ} (T : Set (IntVec k))
     intro y hyA hyB
     obtain ⟨_, i₀, hi₀⟩ := hyA
     obtain ⟨_, i₁, hi₁⟩ := hyB
-    have h_disj_vec := pyramid_union_disjoint_shifted q.toVec s
+    have h_disj_vec := pyramid_union_disjoint_shifted c s
     rw [Set.disjoint_left] at h_disj_vec
     refine h_disj_vec (Set.mem_iUnion.mpr ⟨i₀, hi₀⟩) ?_
     rw [← hb_eq]
@@ -915,10 +1019,10 @@ theorem halving_from_balanced (n : ℕ) {k : ℕ} (T : Set (IntVec k))
 
 The CLY algorithm is a `QueryAlg` defined by well-founded recursion on the
 candidate set's cardinality. At each step it picks a balanced point of `T`
-via `Classical.choose exists_balanced_point_int`, queries the oracle at the
-rescaled point `q.toVec / n`, and either returns (if the response is close
+via `Classical.choose exists_balanced_point_real`, queries the oracle at the
+rescaled point `c / n`, and either returns (if the response is close
 enough) or shrinks `T` using `halving_from_balanced` (with the shifted base
-`b = q.toVec + 2·σ(s)`). The cardinality strictly decreases — termination.
+`b = c + 2·σ(s)`). The cardinality strictly decreases — termination.
 
 The full construction also involves the continuous→discrete *rescaling
 bridge*: a query to the continuous `f : [0,1]^k → [0,1]^k` at point `q/n`
@@ -931,233 +1035,39 @@ attribute [local instance] Classical.propDecidable
 /-- Auxiliary: choose a balanced point of `T`, defaulting to `0` if `T` isn't
 known to be a subset of `EVEN(n, k)`. Encapsulated so the conditional is not
 visible to `split_ifs` in algorithm proofs. -/
-noncomputable def clyChooseBalanced {k : ℕ} (n : ℕ) (T : Finset (IntVec k)) : IntVec k :=
-  if h : ∀ y ∈ (T : Set (IntVec k)), y ∈ EVEN n k then
-    (exists_balanced_point_int (k := k) n (T : Set (IntVec k)) T.finite_toSet h).choose
-  else 0
+noncomputable def clyChooseBalanced {k : ℕ} (n : ℕ) (T : Finset (IntVec k)) : Vec k :=
+  if h : ∃ c : Vec k, c ∈ CubeBox 0 n k ∧ ∀ s : Fin k → Bool,
+      (T : Set (IntVec k)).ncard ≤ 2 *
+        ((T : Set (IntVec k)) ∩ {y : IntVec k | ∃ i, y.toVec ∈ Pyramid i (s i) c}).ncard
+    then h.choose else 0
 
-/-- `clyChooseBalanced` always returns a point in the integer cube. -/
-lemma clyChooseBalanced_mem_intCube {k : ℕ} (n : ℕ) (T : Finset (IntVec k)) :
-    clyChooseBalanced n T ∈ IntCube n k := by
+/-- `clyChooseBalanced` always returns a point of the box `[0, n]^k`. -/
+lemma clyChooseBalanced_mem_cubeBox {k : ℕ} (n : ℕ) (T : Finset (IntVec k)) :
+    clyChooseBalanced n T ∈ CubeBox 0 n k := by
   unfold clyChooseBalanced
   split_ifs with h
-  · exact (exists_balanced_point_int (k := k) n (T : Set (IntVec k))
-            T.finite_toSet h).choose_spec.1
-  · rw [mem_IntCube]
-    intro j
-    exact ⟨le_refl _, Int.natCast_nonneg n⟩
+  · exact h.choose_spec.1
+  · intro _; exact ⟨le_refl _, Nat.cast_nonneg n⟩
 
-/-- The CLY recursive algorithm. Parameterized by:
-* `n` — the discretization scale (so queries happen at `q/n` for `q ∈ IntCube n k`),
-* `ε` — the desired accuracy,
-* `N` — the iteration budget (upper bound on the number of rounds),
-* `T` — the current candidate set (a finite subset of `EVEN(n, k)`).
+/-- The defining property of `clyChooseBalanced`, available whenever `k ≠ 0`
+and `T` really is a set of even grid points. -/
+lemma clyChooseBalanced_spec {k : ℕ} [NeZero k] (n : ℕ) (T : Finset (IntVec k))
+    (h : ∀ y ∈ (T : Set (IntVec k)), y ∈ EVEN n k) (s : Fin k → Bool) :
+    (T : Set (IntVec k)).ncard ≤ 2 *
+      ((T : Set (IntVec k)) ∩
+        {y : IntVec k | ∃ i, y.toVec ∈ Pyramid i (s i) (clyChooseBalanced n T)}).ncard := by
+  have hex : ∃ c : Vec k, c ∈ CubeBox 0 n k ∧ ∀ s : Fin k → Bool,
+      (T : Set (IntVec k)).ncard ≤ 2 *
+        ((T : Set (IntVec k)) ∩ {y : IntVec k | ∃ i, y.toVec ∈ Pyramid i (s i) c}).ncard :=
+    exists_balanced_point_real (k := k) n (T : Set (IntVec k)) T.finite_toSet h
+  unfold clyChooseBalanced
+  rw [dif_pos hex]
+  exact hex.choose_spec.2 s
 
-Each round picks a balanced point `q` of `T`, queries the oracle at `q/n`, and
-either returns `q/n` (if the response is `ε`-close) or shrinks `T` to the points
-inside the pyramid union `⋃ᵢ 𝒫ᵢ(b, sᵢ)` where `b = q + 2σ(s)` and `s` is the
-displacement sign vector. Halving (`halving_from_balanced`) ensures `|T|` drops
-at least by half each round. -/
-noncomputable def clyAlgorithm {k : ℕ} (n : ℕ) (ε : ℝ) :
-    ℕ → Finset (IntVec k) → CQueryAlg k (Vec k)
-  | 0, _ => QueryAlg.pure 0
-  | N + 1, T =>
-    if T.Nonempty then
-      let q : IntVec k := clyChooseBalanced n T
-      let queryPoint : Vec k := fun i => (q i : ℝ) / (n : ℝ)
-      do
-        let resp ← QueryAlg.ask queryPoint
-        if linfDist queryPoint resp ≤ ε then
-          QueryAlg.pure queryPoint
-        else
-          let s : Fin k → Bool := fun i => decide (0 < (n : ℝ) * resp i - (q i : ℝ))
-          let b : Vec k := q.toVec + fun i => if s i then 2 else -2
-          let T' : Finset (IntVec k) :=
-            T.filter (fun y => ∃ i : Fin k, y.toVec ∈ Pyramid i (s i) b)
-          clyAlgorithm n ε N T'
-    else
-      QueryAlg.pure 0
+/-! ## The algorithm
 
-/-- The algorithm always returns either the default (`0`) or an `ε`-approximate
-fixed point of the oracle. Proof: induction on `N`. The `pure 0` exits return
-the default; the `pure queryPoint` exits are exactly the points whose query
-response was within `ε`. -/
-theorem clyAlgorithm_returns_close_or_default {k : ℕ} (n : ℕ) (ε : ℝ) (N : ℕ)
-    (T : Finset (IntVec k)) (f : Vec k → Vec k) :
-    (clyAlgorithm n ε N T).run f = 0 ∨
-      linfDist ((clyAlgorithm n ε N T).run f)
-               (f ((clyAlgorithm n ε N T).run f)) ≤ ε := by
-  induction N generalizing T with
-  | zero => left; simp [clyAlgorithm]
-  | succ N ih =>
-    rw [clyAlgorithm]
-    split_ifs with hT
-    · simp only [QueryAlg.run_bind, QueryAlg.run_ask]
-      split_ifs with hresp
-      · simp only [QueryAlg.run_pure]; exact Or.inr hresp
-      · exact ih _
-    · left; simp [QueryAlg.run_pure]
-
-/-- For any cube-preserving function `f`, `linfDist 0 (f 0) ≤ 1`. Both `0` and
-`f 0` lie in `[0, 1]^k`, so their coordinate-wise differences are bounded by 1
-in absolute value. Useful for the default branch of the algorithm at `ε = 1`. -/
-lemma linfDist_zero_f_zero_le_one {k : ℕ} (f : Vec k → Vec k) {lam : ℝ}
-    (hf : IsLInfContraction f lam) :
-    linfDist 0 (f 0) ≤ 1 := by
-  have h0 : InUnitCube (0 : Vec k) := fun i => by simp
-  have hf0 : InUnitCube (f 0) := hf.preserves_cube 0 h0
-  unfold linfDist
-  split_ifs with h
-  · refine Finset.sup'_le _ _ ?_
-    intro i _
-    have := hf0 i
-    simp only [Set.mem_Icc] at this
-    change |(0 : Vec k) i - (f 0) i| ≤ 1
-    rw [show ((0 : Vec k) i) = (0 : ℝ) from rfl, zero_sub, abs_neg, abs_of_nonneg this.1]
-    exact this.2
-  · norm_num
-
-/-- The returned point of `clyAlgorithm` always lies in the unit cube `[0,1]^k`,
-regardless of the iteration budget, candidate set, or oracle. -/
-theorem clyAlgorithm_run_in_unit_cube {k : ℕ} (n : ℕ) (ε : ℝ) (N : ℕ)
-    (T : Finset (IntVec k)) (f : Vec k → Vec k) :
-    InUnitCube ((clyAlgorithm n ε N T).run f) := by
-  induction N generalizing T with
-  | zero =>
-    intro i
-    simp [clyAlgorithm, QueryAlg.run_pure]
-  | succ N ih =>
-    rw [clyAlgorithm]
-    split_ifs with hT
-    · simp only [QueryAlg.run_bind, QueryAlg.run_ask]
-      split_ifs with hresp
-      · simp only [QueryAlg.run_pure]
-        intro i
-        have hq_cube := clyChooseBalanced_mem_intCube n T
-        rw [mem_IntCube] at hq_cube
-        obtain ⟨h1, h2⟩ := hq_cube i
-        rcases Nat.eq_zero_or_pos n with hn | hn
-        · subst hn
-          have h2' : (clyChooseBalanced 0 T) i ≤ (0 : ℤ) := by exact_mod_cast h2
-          have hq0 : (clyChooseBalanced 0 T) i = (0 : ℤ) := le_antisymm h2' h1
-          simp [hq0]
-        · have hn_pos : (0 : ℝ) < n := by exact_mod_cast hn
-          refine ⟨?_, ?_⟩
-          · exact div_nonneg (by exact_mod_cast h1) hn_pos.le
-          · rw [div_le_one hn_pos]; exact_mod_cast h2
-      · exact ih _
-    · intro i
-      simp [QueryAlg.run_pure]
-
-/-- **Algorithm correctness.** Under sufficient iteration budget, the algorithm
-returns an `ε`-approximate fixed point. The "in cube" part is proved
-unconditionally via `clyAlgorithm_run_in_unit_cube`; the "ε-close" part reduces
-to showing the algorithm never exits via the default branch (a consequence of
-the candidate-set invariant + halving), deferred.
-
-The iteration-count hypothesis is `(EVEN n k).card < 2^N` — exactly the
-`(p-1)^N · m < p^N` shape from `Tfnp.measure_zero_of_iterate_shrinking` with
-`p = 2` (so `(p-1)^N · m = m`). Callers can either provide this inequality
-directly or derive it from `Tfnp.finset_card_zero_of_halving`. -/
-theorem clyAlgorithm_correct {k : ℕ} (n : ℕ) (ε : ℝ) (_hε : 0 < ε) (N : ℕ)
-    (_hN : (EVEN n k).card < 2 ^ N)
-    (f : Vec k → Vec k) {lam : ℝ} (hf : IsLInfContraction f lam) :
-    IsApproxFixedPoint f ε ((clyAlgorithm n ε N (EVEN n k)).run f) := by
-  refine ⟨clyAlgorithm_run_in_unit_cube n ε N (EVEN n k) f, ?_⟩
-  rcases clyAlgorithm_returns_close_or_default n ε N (EVEN n k) f with h0 | hclose
-  · -- Default-branch: returned `0`. We need `linfDist 0 (f 0) ≤ ε`.
-    -- For `ε ≥ 1` this is immediate from `linfDist_zero_f_zero_le_one`.
-    -- For `ε < 1` it requires the CLY candidate-set invariant ruling out this
-    -- branch under sufficient budget — deferred.
-    rw [h0]
-    by_cases hε1 : 1 ≤ ε
-    · exact (linfDist_zero_f_zero_le_one f hf).trans hε1
-    · sorry
-  · exact hclose
-
-/-- **Algorithm query bound.** The recursive `clyAlgorithm` makes at most `N`
-queries for any initial candidate set `T` and iteration budget `N`. -/
-theorem clyAlgorithm_queries {k : ℕ} (n : ℕ) (ε : ℝ) (N : ℕ) (f : Vec k → Vec k)
-    (T : Finset (IntVec k)) :
-    (clyAlgorithm n ε N T).queries f ≤ N := by
-  induction N generalizing T with
-  | zero => simp [clyAlgorithm]
-  | succ N ih =>
-    rw [clyAlgorithm]
-    split_ifs with hT
-    · -- T.Nonempty: do { resp ← ask qp; if close then pure qp else recurse }
-      -- queries = (ask qp).queries f + (κ resp).queries f = 1 + ...
-      simp only [QueryAlg.queries_bind, QueryAlg.queries_ask, QueryAlg.run_ask]
-      rw [show (N + 1 : ℕ) = 1 + N from Nat.add_comm N 1]
-      apply Nat.add_le_add_left
-      split_ifs with hresp
-      · simp [QueryAlg.queries_pure]
-      · exact ih _
-    · -- ¬T.Nonempty case: algorithm returns pure 0 immediately.
-      unfold QueryAlg.queries
-      omega
-
-/--
-**Main theorem (Chen–Li–Yannakakis, 2024).** There is a uniform constant `C`
-and a family of query algorithms `A k ε : CQueryAlg k (Vec k)` such that, for
-every dimension `k`, accuracy `ε ∈ (0, 1]`, and every `ℓ∞`-contraction
-`f : [0,1]^k → [0,1]^k` (any contraction constant `λ ∈ [0,1)`), running
-`A k ε` on `f` returns an `ε`-approximate fixed point and makes at most
-`C · k² · log(1/ε)` queries.
-
-The bound is independent of `λ`. The algorithm maintains a candidate set on
-the integer grid `EVEN(n, k)` (with `n ≍ 1/ε`), repeatedly queries a balanced
-point of the candidate set, and uses the pyramid lemma to halve the candidate
-set each round. Total queries: `O(log |EVEN(n,k)|) = O(k log(1/ε))` after the
-black-box `(ε, γ) ↦ (ε/2, ε/2)` transformation. See Algorithm 1 and Lemma 5 of
-[arXiv:2403.19911](https://arxiv.org/abs/2403.19911).
--/
-theorem cly_query_complexity :
-    ∃ (A : (k : ℕ) → ℝ → CQueryAlg k (Vec k)) (C : ℝ),
-      0 ≤ C ∧
-      ∀ (k : ℕ) (ε : ℝ), 0 < ε → ε ≤ 1 →
-        ∀ {lam : ℝ} (f : Vec k → Vec k), IsLInfContraction f lam →
-          IsApproxFixedPoint f ε ((A k ε).run f) ∧
-          ((A k ε).queries f : ℝ) ≤ C * ((k : ℝ)^2 + 1) * (Real.log (1/ε) + 1) := by
-  -- The bound has additive `+ 1` slack on both factors so it is provable as a
-  -- hard inequality (CLY's publication bound is asymptotic `O(k² log(1/ε))`;
-  -- the slack is absorbed into a single constant).
-  --
-  -- The choice `N = k + 1` is justified by `Tfnp.measure_zero_of_iterate_shrinking`
-  -- (specialised to halving, `p = 2`): the candidate set `EVEN(1, k)` has size
-  -- at most `2^k`, so `k + 1` halving iterations suffice to empty it.
-  refine ⟨fun k ε => clyAlgorithm 1 ε (k + 1) (EVEN 1 k), 1, by norm_num, ?_⟩
-  intros k ε hε hε1 lam f hf
-  -- `|EVEN 1 k| ≤ 2^k` (EVEN is a filter of `IntCube 1 k`, which has size `2^k`).
-  have hcard_le : (EVEN 1 k).card ≤ 2 ^ k := by
-    have hsub : EVEN 1 k ⊆ IntCube 1 k := by
-      unfold EVEN; exact Finset.filter_subset _ _
-    calc (EVEN 1 k).card ≤ (IntCube 1 k).card := Finset.card_le_card hsub
-      _ = 2 ^ k := by unfold IntCube; rw [Fintype.card_piFinset]; simp [Int.card_Icc]
-  -- The iteration-count hypothesis for `clyAlgorithm_correct`: with `N = k + 1`
-  -- halving rounds, a set of size at most `2^k` is emptied. This is the
-  -- `Tfnp.iterate_shrinking` content (p = 2): `1^N · card < 2^N` ⟺ `card < 2^N`.
-  -- The chain reduces to one application of `Nat.pow_lt_pow_right`.
-  have h_shrink : (EVEN 1 k).card < 2 ^ (k + 1) :=
-    hcard_le.trans_lt (Nat.pow_lt_pow_right one_lt_two (Nat.lt_succ_self k))
-  refine ⟨clyAlgorithm_correct 1 ε hε (k + 1) h_shrink f hf, ?_⟩
-  have hqueries := clyAlgorithm_queries 1 ε (k + 1) f (EVEN 1 k)
-  have h1 : (1 : ℝ) ≤ Real.log (1/ε) + 1 := by
-    have : (0 : ℝ) ≤ Real.log (1/ε) := by
-      apply Real.log_nonneg; rw [le_div_iff₀ hε]; linarith
-    linarith
-  calc ((clyAlgorithm 1 ε (k + 1) (EVEN 1 k)).queries f : ℝ)
-      ≤ ((k : ℝ) + 1) := by exact_mod_cast hqueries
-    _ ≤ ((k : ℝ)^2 + 1) := by
-        have hsq : (k : ℝ) ≤ (k : ℝ)^2 := by
-          rcases Nat.eq_zero_or_pos k with hk | hk
-          · subst hk; simp
-          · have hk1 : (1 : ℝ) ≤ k := by exact_mod_cast hk
-            nlinarith
-        linarith
-    _ ≤ 1 * ((k : ℝ)^2 + 1) * (Real.log (1/ε) + 1) := by
-        have hsq_nn : (0 : ℝ) ≤ (k : ℝ)^2 + 1 := by
-          have : (0 : ℝ) ≤ (k : ℝ)^2 := sq_nonneg _; linarith
-        nlinarith
+The recursive algorithm, its correctness (CLY Lemma 5) and the query bound live
+in `Tfnp/Algorithm.lean`, which builds on `exists_balanced_point_real` above
+together with the three geometric lemmas of CLY Section 3. -/
 
 end Tfnp.Contraction

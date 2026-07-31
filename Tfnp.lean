@@ -7,3 +7,4 @@ Authors: Angus Joshi
 import Tfnp.QueryModel
 import Tfnp.Shrinking
 import Tfnp.Contraction
+import Tfnp.Algorithm
