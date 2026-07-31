@@ -108,6 +108,64 @@ the thickening/volume machinery is gone, and the parity rounding is unnecessary
 — it exists only to transfer a *volume* balance to a *counting* balance, and the
 argument above gives the counting balance directly. See `notes/polytime.md`.
 
+## PPAD
+
+`Tfnp/PPAD.lean` defines the class abstractly: `SearchProblem`, `Reduction`
+(the combinatorial data of a many-one reduction), and `ReductionClass` (an
+abstract predicate on reductions, closed under identity and composition).
+`PPAD` is defined relative to a `ReductionClass`, so instantiating it with
+poly-time computability is orthogonal to everything proved here.
+
+* `exists_other_end` — the parity argument, the entire mathematical content of
+  `PPAD`'s totality;
+* `endOfLine_isTotal`, `endOfLine_ppadComplete`;
+* `InPPAD.isTotal` — `PPAD ⊆ TFNP`, *derived* from the parity argument;
+* `ppadHard_iff_endOfLine_reduces` — hardness needs only one reduction.
+
+**Guard rail.** `nonempty_reduction_of_isTotal` proves that the bare notion of
+reduction is vacuous: any total problem reduces to any problem with an instance,
+by a constant instance map plus choice. `trivialClass_degenerate` makes the
+consequence explicit — under `Ok := fun _ => True`, every total problem is
+`PPAD`-complete. So all the content of a hardness result lives in the
+`ReductionClass`.
+
+### Black-box lower bounds (`Tfnp/BlackBox.lean`)
+
+The reusable core of every deterministic query lower bound:
+
+* `QueryAlg.queried` — the points an algorithm actually looks at;
+* `QueryAlg.run_eq_of_agree` — oracles agreeing there give the same output *and*
+  the same query list;
+* `QueryAlg.not_valid_of_agree` — the two-instance template.
+
+Applied to End-of-Line: `eol_must_query_endpoint` shows a correct algorithm has
+to *query* the endpoint of the path — it cannot deduce it. The witness pair is
+the path `0 → 1` against `0 → 1 → a → b`, which agree off `{1, a, b}` but have
+different unique solutions. `exists_unqueried` supplies the two spare vertices
+whenever the algorithm leaves room.
+
+### The circuit model (`Tfnp/Circuit.lean`, `Tfnp/CircuitEOL.lean`)
+
+Straight-line-program Boolean circuits — DAGs, not formulas, since poly-size
+formulas compute a strictly weaker class and would define the wrong complexity
+class. Wire numbering is uniform (the wire list starts as the inputs and each
+gate appends), which is what makes `Gate.shiftAll` plain addition and hence
+makes composition provable without index case-splits:
+
+* `evalWires_shiftAll` — relocation: a shifted gate list run after a prefix
+  computes what the unshifted list computes, in place after the prefix;
+* `MultiCircuit.comp` with **`eval_comp`** — composition computes the composite
+  (given the first circuit's outputs are in range) — and `size_comp`, giving
+  `size (comp c d) = size c + |outputs c| + size d`;
+* `PolySize`, closed under sums, hence under composition.
+
+`CircuitEOL` is then Papadimitriou's actual problem: the successor and
+predecessor are given by *circuits*, so an instance is polynomially sized even
+though the graph has `2^n` vertices. `circuitEndOfLine_isTotal` follows from the
+same parity argument, and `circuitToTable` reduces the succinct version to the
+tabular one. There is deliberately no reduction back: going from a function to a
+circuit computing it is precisely what succinctness forbids.
+
 ## Acknowledgements
 
 * `Tfnp/Brouwer/` vendors the Brouwer fixed-point formalization from

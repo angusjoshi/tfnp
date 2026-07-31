@@ -8,3 +8,7 @@ import Tfnp.QueryModel
 import Tfnp.Shrinking
 import Tfnp.Contraction
 import Tfnp.Algorithm
+import Tfnp.PPAD
+import Tfnp.BlackBox
+import Tfnp.Circuit
+import Tfnp.CircuitEOL
