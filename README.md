@@ -69,9 +69,10 @@ Note `clyAlgorithm` is `noncomputable`: the balanced point is obtained by
 
 `Tfnp/Contraction.lean`:
 
-* `linfDist`, `Pyramid`, `Around`, the integer grid `EVEN(n, k)`;
-* `fermatWeber`, `exists_balanced_point_box`, `exists_balanced_point_real` —
-  balanced points, by convex minimisation (see below).
+* `linfDist`, `Pyramid`, `Around`, the integer `grid`;
+* `fermatWeber`, `exists_balanced_point_box` — balanced points, by convex
+  minimisation (see below);
+* `grid`, `exists_grid_near`, `clyChooseBalanced`.
 
 `Tfnp/Algorithm.lean`, following CLY Sections 3–4:
 
@@ -81,8 +82,8 @@ Note `clyAlgorithm` is `noncomputable`: the balanced point is obtained by
 * `clyStep` — Algorithm 1, with Observation 1 (the `γ`-elimination) folded in by
   damping every oracle response by `(1 − ε/2)`;
 * `clyStep_correct` — their Lemma 5: the induction carrying both invariants
-  (the candidate set always contains an even grid point within distance `1` of
-  the fixed point, so is never empty; and it halves each round);
+  (the candidate set always contains a grid point within distance `1` of the
+  fixed point, so is never empty; and it halves each round);
 * `cly_query_complexity` — Theorem 1, at grid scale `⌈64/ε²⌉` and
   `k(log₂ n + 2) + 1` rounds.
 
@@ -106,7 +107,9 @@ from `c` to `y`" is quantised into exactly the `2k` pyramid classes.
 Consequences: `Tfnp/Contraction.lean` does not depend on `Tfnp/Brouwer/` at all,
 the thickening/volume machinery is gone, and the parity rounding is unnecessary
 — it exists only to transfer a *volume* balance to a *counting* balance, and the
-argument above gives the counting balance directly. See `notes/polytime.md`.
+argument above gives the counting balance directly. With the rounding step gone
+the candidate set needs no parity condition either, so CLY's even-integer set is
+replaced by the full integer `grid`. See `notes/polytime.md`.
 
 ## PPAD
 

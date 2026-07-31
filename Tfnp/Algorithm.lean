@@ -1,31 +1,20 @@
-/-
-Copyright (c) 2026 Angus Joshi. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Angus Joshi
--/
-
 import Mathlib.Topology.MetricSpace.Contracting
 import Tfnp.Contraction
 
 /-!
-# The Chen–Li–Yannakakis algorithm and its correctness
+# The Chen–Li–Yannakakis algorithm
 
-This file follows Sections 3 and 4 of
+Sections 3 and 4 of [arXiv:2403.19911](https://arxiv.org/abs/2403.19911).
 
-> Xi Chen, Yuhao Li, Mihalis Yannakakis,
-> *Computing a Fixed Point of Contraction Maps in Polynomial Queries*, STOC 2024
-> ([arXiv:2403.19911](https://arxiv.org/abs/2403.19911)).
-
-Naming follows the paper:
-
-* `sgnR`, `IsTernary` — the sign vector `s ∈ {±1, 0}^k` with `sᵢ = sgn(g(a)ᵢ − aᵢ)`;
-* `Pyr i σ x`, `PyrUnion s x` — `𝒫ᵢ(x, σ)` and `⋃_{i : sᵢ ≠ 0} 𝒫ᵢ(x, sᵢ)`;
-* `pyrUnion_disjoint_pyramid` — Lemma 4;
-* `around_subset_pyrUnion` — Lemma 3;
-* `fixedPoint_mem_pyrUnion` — Lemma 2.
-
-The balanced point (their Theorem 4) is `exists_balanced_point_real`, proved in
-`Tfnp/Contraction.lean` by convex minimisation rather than by Brouwer.
+* `pyrUnion_disjoint_pyramid` — their Lemma 4
+* `around_subset_pyrUnion` — their Lemma 3
+* `fixedPoint_mem_pyrUnion` — their Lemma 2
+* `clyStep` — Algorithm 1, with Observation 1 folded in: every oracle response
+  is damped by `(1 − ε/2)`, which makes the map a `(1 − ε/2)`-contraction
+  whatever its own contraction factor was
+* `clyStep_correct` — their Lemma 5
+* `clyAlgorithm_isApproxFixedPoint`, `clyAlgorithm_queries_le`,
+  `cly_query_complexity` — their Theorem 1
 -/
 
 set_option autoImplicit false
@@ -41,11 +30,6 @@ section Geometry
 variable [NeZero k]
 
 /-! ## `ℓ∞` helpers -/
-
-lemma linfDist_le {x y : Vec k} {r : ℝ} (h : ∀ i, |x i - y i| ≤ r) : linfDist x y ≤ r := by
-  unfold linfDist
-  rw [dif_pos (univ_nonempty_fin (k := k))]
-  exact Finset.sup'_le _ _ fun i _ => h i
 
 lemma exists_coord_eq_linfDist (x y : Vec k) : ∃ i, |x i - y i| = linfDist x y := by
   obtain ⟨i, _, hi⟩ :=
@@ -121,16 +105,9 @@ def Pyr (i : Fin k) (σ : ℝ) (x : Vec k) : Set (Vec k) :=
 @[simp] lemma mem_Pyr {i : Fin k} {σ : ℝ} {x y : Vec k} :
     y ∈ Pyr i σ x ↔ σ * (y i - x i) = linfDist y x := Iff.rfl
 
-lemma Pyramid_eq_Pyr (i : Fin k) (ϕ : Bool) (x : Vec k) :
-    Pyramid i ϕ x = Pyr i (signR ϕ) x := by
-  ext y; rw [mem_pyramid_iff_sign, mem_Pyr]
-
 /-- `⋃_{i : sᵢ ≠ 0} 𝒫ᵢ(x, sᵢ)`. -/
 def PyrUnion (s : Fin k → ℝ) (x : Vec k) : Set (Vec k) :=
   { y | ∃ i, s i ≠ 0 ∧ y ∈ Pyr i (s i) x }
-
-@[simp] lemma mem_PyrUnion {s : Fin k → ℝ} {x y : Vec k} :
-    y ∈ PyrUnion s x ↔ ∃ i, s i ≠ 0 ∧ s i * (y i - x i) = linfDist y x := Iff.rfl
 
 /-- Translate `x` by `c · s`. -/
 def shiftVec (x : Vec k) (c : ℝ) (s : Fin k → ℝ) : Vec k := fun i => x i + c * s i
@@ -155,7 +132,7 @@ lemma signed_shift {s : Fin k → ℝ} (hs : IsTernary s) {i : Fin k} (hi : s i 
     simp only [shiftVec_apply]; ring
   rw [e, hsq]; ring
 
-/-! ## Lemma 4: the shifted pyramid union misses a pyramid at the old apex -/
+/-! ## Lemma 4 -/
 
 /-- **CLY Lemma 4.** For every coordinate `j` there is a sign `φ ∈ {±1}` with
 `𝒫ⱼ(a, φ) ∩ ⋃_{i : sᵢ ≠ 0} 𝒫ᵢ(a + 2s, sᵢ) = ∅`. -/
@@ -163,7 +140,6 @@ theorem pyrUnion_disjoint_pyramid (a : Vec k) {s : Fin k → ℝ} (hs : IsTernar
     (j : Fin k) :
     ∃ φ : Bool, ∀ y ∈ PyrUnion s (shiftVec a 2 s), y ∉ Pyramid j φ a := by
   set b := shiftVec a 2 s with hb
-  -- Common step: any `y` in the shifted union is `≥ 2` further from `a` than from `b`.
   have key : ∀ y ∈ PyrUnion s b, linfDist y b + 2 ≤ linfDist y a := by
     rintro y ⟨i₀, hi₀, hy⟩
     rw [mem_Pyr] at hy
@@ -191,7 +167,6 @@ theorem pyrUnion_disjoint_pyramid (a : Vec k) {s : Fin k → ℝ} (hs : IsTernar
       · rw [h1]; norm_num [signR]
       · exact absurd h1 hj
     rw [mem_pyramid_iff_sign, hsig] at hmem
-    -- `−sⱼ (y − b)ⱼ = ‖y − a‖∞ + 2`, so `‖y − b‖∞ ≥ ‖y − a‖∞ + 2`.
     have hsq := hs.sq_of_ne hj
     have h1 : -s j * (y j - b j) = linfDist y a + 2 := by
       simp only [hb, shiftVec_apply]
@@ -203,7 +178,7 @@ theorem pyrUnion_disjoint_pyramid (a : Vec k) {s : Fin k → ℝ} (hs : IsTernar
     have h3 : |y j - b j| ≤ linfDist y b := abs_sub_le_linfDist y b j
     linarith [key y hy]
 
-/-! ## Lemma 3: a unit ball around the shifted union sits in the unshifted union -/
+/-! ## Lemma 3 -/
 
 /-- **CLY Lemma 3.** Every `x ∈ ⋃_{i : sᵢ ≠ 0} 𝒫ᵢ(b + 2s, sᵢ)` has its unit
 `ℓ∞`-ball contained in `⋃_{i : sᵢ ≠ 0} 𝒫ᵢ(b, sᵢ)`. -/
@@ -215,9 +190,7 @@ theorem around_subset_pyrUnion (b : Vec k) {s : Fin k → ℝ} (hs : IsTernary s
   rw [mem_Pyr] at hxc
   set M := linfDist x c with hM
   have hM0 : 0 ≤ M := linfDist_nonneg _ _
-  -- (F1) every coordinate of `x` is within `M` of `c`.
   have hF1 : ∀ i, |x i - c i| ≤ M := fun i => abs_sub_le_linfDist x c i
-  -- (F2) at `i₀` the signed distance to `b` is `M + 2`.
   have hF2 : s i₀ * (x i₀ - b i₀) = M + 2 := by
     rw [signed_shift hs hi₀ b x 2, ← hc, hxc]
   intro y hy
@@ -225,7 +198,6 @@ theorem around_subset_pyrUnion (b : Vec k) {s : Fin k → ℝ} (hs : IsTernary s
     intro i
     have := abs_sub_le_linfDist y x i
     exact this.trans hy
-  -- (F3) at `i₀` the signed distance from `y` to `b` is at least `M + 1`.
   have hF3 : M + 1 ≤ s i₀ * (y i₀ - b i₀) := by
     have hsplit : s i₀ * (y i₀ - b i₀) = s i₀ * (x i₀ - b i₀) + s i₀ * (y i₀ - x i₀) := by ring
     have hlow : -|y i₀ - x i₀| ≤ s i₀ * (y i₀ - x i₀) := by
@@ -234,7 +206,6 @@ theorem around_subset_pyrUnion (b : Vec k) {s : Fin k → ℝ} (hs : IsTernary s
       nlinarith [this]
     rw [hsplit, hF2]
     linarith [hy1 i₀]
-  -- Pick `j` maximising the signed distance over the support of `s`.
   have hsupp : (Finset.univ.filter (fun i => s i ≠ 0)).Nonempty :=
     ⟨i₀, Finset.mem_filter.mpr ⟨Finset.mem_univ _, hi₀⟩⟩
   obtain ⟨j, hj_mem, hj_max⟩ :=
@@ -248,7 +219,6 @@ theorem around_subset_pyrUnion (b : Vec k) {s : Fin k → ℝ} (hs : IsTernary s
   have hVabs : |y j - b j| = V := by
     have : |V| = |y j - b j| := hs.abs_mul_eq hjs _
     rw [hV, ← this, abs_of_nonneg (by linarith : (0:ℝ) ≤ s j * (y j - b j))]
-  -- Every coordinate of `y − b` is dominated by `V`.
   have hdom : ∀ i, |y i - b i| ≤ V := by
     intro i
     by_cases hi : s i = 0
@@ -282,7 +252,7 @@ theorem around_subset_pyrUnion (b : Vec k) {s : Fin k → ℝ} (hs : IsTernary s
         linarith [hy1 i, hF1 i]
   exact ⟨j, hjs, by rw [mem_Pyr, ← hV]; exact (le_antisymm (linfDist_le hdom) (hVabs ▸ abs_sub_le_linfDist y b j)).symm⟩
 
-/-! ## Lemma 2: the fixed point lies in the doubly-shifted pyramid union -/
+/-! ## Lemma 2 -/
 
 /-- **CLY Lemma 2.** If `a` is far from being a fixed point of the
 `(1−γ)`-contraction `g` — namely `‖g(a) − a‖∞ > 16/γ` — and `sᵢ = sgn(g(a)ᵢ − aᵢ)`,
@@ -296,9 +266,7 @@ theorem fixedPoint_mem_pyrUnion {γ : ℝ} (hγ : 0 < γ) (hγ1 : γ ≤ 1)
     xs ∈ PyrUnion s (shiftVec a 4 s) := by
   have hs : IsTernary s := fun i => by rw [hsdef i]; exact sgnR_spec _
   set c := shiftVec a 4 s with hc
-  -- `‖c − a‖∞ ≤ 4`.
   have hca : linfDist c a ≤ 4 := linfDist_shiftVec_le hs a (by norm_num)
-  -- Step 1: `xs` is far from `a`.
   have hxa : 8 / γ < linfDist xs a := by
     by_contra hcon
     push_neg at hcon
@@ -314,7 +282,6 @@ theorem fixedPoint_mem_pyrUnion {γ : ℝ} (hγ : 0 < γ) (hγ1 : γ ≤ 1)
   have hγxa : 8 < γ * linfDist xs a := by
     rw [div_lt_iff₀ hγ] at hxa
     linarith [hxa]
-  -- Step 2: suppose `xs` is outside; derive `g xs ≠ xs` at a dominating coordinate.
   by_contra hout
   obtain ⟨j, hj⟩ := exists_coord_eq_linfDist xs c
   have hcontr_j : |g xs j - g a j| ≤ (1 - γ) * linfDist xs a := by
@@ -342,7 +309,6 @@ theorem fixedPoint_mem_pyrUnion {γ : ℝ} (hγ : 0 < γ) (hγ1 : γ ≤ 1)
       nlinarith [hb2.1, habs, htri, hca, hγxa, hgfix, hcj]
   · -- Part 2: `sⱼ ≠ 0`.
     have hsq := hs.sq_of_ne hsj
-    -- `xs ∉ 𝒫ⱼ(c, sⱼ)` and `|xsⱼ − cⱼ| = ‖xs − c‖∞` force the opposite sign.
     have hnotj : ¬ (s j * (xs j - c j) = linfDist xs c) := fun h => hout ⟨j, hsj, h⟩
     have hopp : s j * (xs j - c j) = -linfDist xs c := by
       have habs : |s j * (xs j - c j)| = |xs j - c j| := hs.abs_mul_eq hsj _
@@ -350,12 +316,10 @@ theorem fixedPoint_mem_pyrUnion {γ : ℝ} (hγ : 0 < γ) (hγ1 : γ ≤ 1)
       rcases abs_cases (s j * (xs j - c j)) with ⟨he, _⟩ | ⟨he, _⟩
       · exact absurd (by linarith [habs, he]) hnotj
       · linarith [habs, he]
-    -- `sⱼ (xsⱼ − aⱼ) = 4 − ‖xs − c‖∞`.
     have hsa : s j * (xs j - a j) = 4 - linfDist xs c := by
       have := signed_shift hs hsj a xs 4
       rw [← hc] at this
       linarith [hopp, this]
-    -- `‖xs − c‖∞ ≥ 4`, else `xs` would be close to `a`.
     have hxc4 : 4 ≤ linfDist xs c := by
       by_contra hcon
       push_neg at hcon
@@ -363,60 +327,21 @@ theorem fixedPoint_mem_pyrUnion {γ : ℝ} (hγ : 0 < γ) (hγ1 : γ ≤ 1)
       have h8 : (8 : ℝ) ≤ 8 / γ := by
         rw [le_div_iff₀ hγ]; nlinarith [hγ1, hγ]
       linarith [hxa]
-    -- The contraction bound in signed form.
     have hsign_contr : s j * (g a j - g xs j) ≤ (1 - γ) * linfDist xs a := by
       calc s j * (g a j - g xs j) ≤ |g a j - g xs j| := hs.mul_le_abs j _
         _ = |g xs j - g a j| := abs_sub_comm _ _
         _ ≤ (1 - γ) * linfDist xs a := hcontr_j
-    -- `sⱼ (g(a)ⱼ − aⱼ) = |g(a)ⱼ − aⱼ| > 0`.
     have hpos : 0 < s j * (g a j - a j) := by
       rw [hsdef j]
       have hne : sgnR (g a j - a j) ≠ 0 := by rw [← hsdef j]; exact hsj
       rw [sgnR_mul_self_pos hne]
       exact abs_pos.mpr (fun h => hne (sgnR_eq_zero_iff.mpr h))
-    -- Combine: `sⱼ g(xs)ⱼ > sⱼ xsⱼ`, contradicting `g xs = xs`.
     have hfinal : s j * (g xs j) > s j * (xs j) := by
       nlinarith [hsign_contr, hγxa, htri, hca, hsa, hpos]
     rw [hgfix] at hfinal
     exact lt_irrefl _ hfinal
 
-
 /-! ## Supporting facts -/
-
-/-- Every real number in `[0, n]` is within `1` of an even integer in `[0, n]`. -/
-lemma exists_even_int_near (n : ℕ) {t : ℝ} (h0 : 0 ≤ t) (h1 : t ≤ (n : ℝ)) :
-    ∃ m : ℤ, 0 ≤ m ∧ m ≤ (n : ℤ) ∧ Even m ∧ |(m : ℝ) - t| ≤ 1 := by
-  obtain ⟨p, hp⟩ : ∃ p : ℤ, p = ⌊(t + 1) / 2⌋ := ⟨_, rfl⟩
-  obtain ⟨q, hq⟩ : ∃ q : ℤ, q = (n : ℤ) / 2 := ⟨_, rfl⟩
-  have hp0 : 0 ≤ p := hp ▸ Int.floor_nonneg.mpr (by linarith)
-  have hq0 : 0 ≤ q := by omega
-  have hqn : 2 * q ≤ (n : ℤ) := by omega
-  have hqn' : (n : ℤ) ≤ 2 * q + 1 := by omega
-  have hfl : (p : ℝ) ≤ (t + 1) / 2 := hp ▸ Int.floor_le _
-  have hfu : (t + 1) / 2 < (p : ℝ) + 1 := hp ▸ Int.lt_floor_add_one _
-  rcases le_or_gt p q with hle | hlt
-  · refine ⟨2 * p, by linarith, by linarith, ⟨p, by ring⟩, ?_⟩
-    push_cast
-    rw [abs_le]
-    constructor <;> linarith
-  · refine ⟨2 * q, by linarith, by linarith, ⟨q, by ring⟩, ?_⟩
-    have hqp : (q : ℝ) + 1 ≤ (p : ℝ) := by exact_mod_cast (by linarith : q + 1 ≤ p)
-    have hn2q : (n : ℝ) ≤ 2 * (q : ℝ) + 1 := by exact_mod_cast hqn'
-    push_cast
-    rw [abs_le]
-    constructor <;> linarith
-
-/-- Every point of the box `[0, n]^k` has an even grid point of `EVEN(n, k)`
-within `ℓ∞`-distance `1`. -/
-lemma exists_even_near {x : Vec k} {n : ℕ} (hx : ∀ i, 0 ≤ x i ∧ x i ≤ (n : ℝ)) :
-    ∃ y ∈ EVEN n k, linfDist y.toVec x ≤ 1 := by
-  choose m hm0 hmn hmev hmd using fun i => exists_even_int_near n (hx i).1 (hx i).2
-  refine ⟨m, ?_, ?_⟩
-  · rw [mem_EVEN]
-    exact ⟨fun i => ⟨hm0 i, hmn i⟩, hmev⟩
-  · refine linfDist_le fun i => ?_
-    rw [IntVec.toVec_apply]
-    exact hmd i
 
 /-- Clamping into a box is `1`-Lipschitz coordinatewise. -/
 lemma abs_clamp_sub_clamp_le {lo hi : ℝ} (a b : ℝ) :
@@ -442,8 +367,7 @@ lemma clampBox_eq_self {lo hi : ℝ} {z : Vec k} (hz : ∀ i, lo ≤ z i ∧ z i
   rw [min_eq_right (hz i).2, max_eq_right (hz i).1]
 
 /-- **Banach.** A contraction of the unit cube into itself has a fixed point in
-the cube. Proved by extending the map to all of `ℝ^k` through the clamp, which
-makes it a genuine contraction of a complete space. -/
+the cube, obtained by extending the map to all of `ℝ^k` through the clamp. -/
 lemma exists_fixedPoint_of_contraction {lam : ℝ} {h : Vec k → Vec k}
     (hmaps : ∀ x, InUnitCube x → InUnitCube (h x))
     (hlam0 : 0 ≤ lam) (hlam1 : lam < 1)
@@ -474,19 +398,15 @@ lemma exists_fixedPoint_of_contraction {lam : ℝ} {h : Vec k → Vec k}
   rw [clampBox_eq_self (fun i => Set.mem_Icc.mp (hycube i))] at hyfix
   exact hyfix
 
-
-/-! ## Scaling helpers -/
-
+/-- Scaling a pair of vectors scales their `ℓ∞` distance. -/
 lemma linfDist_smul (c : ℝ) (x y : Vec k) :
     linfDist (fun i => c * x i) (fun i => c * y i) = |c| * linfDist x y := by
   refine le_antisymm (linfDist_le fun i => ?_) ?_
-  · have : |c * x i - c * y i| = |c| * |x i - y i| := by
-      rw [← abs_mul]; ring_nf
+  · have : |c * x i - c * y i| = |c| * |x i - y i| := by rw [← abs_mul]; ring_nf
     rw [this]
     nlinarith [abs_nonneg c, abs_sub_le_linfDist x y i]
   · obtain ⟨i, hi⟩ := exists_coord_eq_linfDist x y
-    have h1 : |c| * |x i - y i| = |c * x i - c * y i| := by
-      rw [← abs_mul]; ring_nf
+    have h1 : |c| * |x i - y i| = |c * x i - c * y i| := by rw [← abs_mul]; ring_nf
     rw [← hi, h1]
     exact abs_sub_le_linfDist (fun i => c * x i) (fun i => c * y i) i
 
@@ -494,18 +414,7 @@ lemma shiftVec_shiftVec (a : Vec k) (s : Fin k → ℝ) :
     shiftVec (shiftVec a 2 s) 2 s = shiftVec a 4 s := by
   funext i; simp only [shiftVec_apply]; ring
 
-lemma ncard_coe_inter_setOf {α : Type*} (T : Finset α) (P : α → Prop)
-    [DecidablePred P] :
-    ((T : Set α) ∩ {y | P y}).ncard = (T.filter P).card := by
-  have : (T : Set α) ∩ {y | P y} = ((T.filter P : Finset α) : Set α) := by
-    rw [Finset.coe_filter]; rfl
-  rw [this, Set.ncard_coe_finset]
-
-/-! ## The rescaled, damped map
-
-Observation 1 of CLY: damping `f` to `h = (1−δ)·f` turns any contraction (indeed
-any non-expansive map) into a `(1−δ)`-contraction, at the cost of a factor `2`
-in the accuracy. Rescaling to the grid `[0,n]^k` then gives `g`. -/
+/-! ## The rescaled, damped map -/
 
 /-- `g(x) = n · (1−δ) · f(x/n)`, a `(1−δ)`-contraction of `[0,n]^k`. -/
 noncomputable def gMap (n : ℕ) (δ : ℝ) (f : Vec k → Vec k) : Vec k → Vec k :=
@@ -558,7 +467,7 @@ the oracle response is damped by `(1−δ)` before use, which makes the map a
 `n` is the grid scale, `δ` the accuracy (half the final `ε`), `N` the round
 budget and `T` the candidate set. -/
 noncomputable def clyStep {k : ℕ} (n : ℕ) (δ : ℝ) :
-    ℕ → Finset (IntVec k) → CQueryAlg k (Vec k)
+    ℕ → Finset (Vec k) → CQueryAlg k (Vec k)
   | 0, _ => QueryAlg.pure 0
   | N + 1, T =>
     let a : Vec k := clyChooseBalanced n T
@@ -570,12 +479,12 @@ noncomputable def clyStep {k : ℕ} (n : ℕ) (δ : ℝ) :
         QueryAlg.pure qp
       else
         let s : Fin k → ℝ := fun i => sgnR ((n : ℝ) * hresp i - a i)
-        clyStep n δ N (T.filter (fun y => y.toVec ∈ PyrUnion s (shiftVec a 2 s)))
+        clyStep n δ N (T.filter (fun y => y ∈ PyrUnion s (shiftVec a 2 s)))
 
 omit [NeZero k] in
 /-- The algorithm makes at most `N` queries. -/
 theorem clyStep_queries (n : ℕ) (δ : ℝ) (N : ℕ) (f : Vec k → Vec k)
-    (T : Finset (IntVec k)) : (clyStep n δ N T).queries f ≤ N := by
+    (T : Finset (Vec k)) : (clyStep n δ N T).queries f ≤ N := by
   induction N generalizing T with
   | zero => simp [clyStep]
   | succ N ih =>
@@ -588,24 +497,19 @@ theorem clyStep_queries (n : ℕ) (δ : ℝ) (N : ℕ) (f : Vec k → Vec k)
     · exact ih _
 
 /-- Halving: the new candidate set is at most half the old one. -/
-theorem clyStep_halving [NeZero k] (n : ℕ) (T : Finset (IntVec k))
-    (hTsub : T ⊆ EVEN n k) {s : Fin k → ℝ} (hs : IsTernary s)
+theorem clyStep_halving [NeZero k] (n : ℕ) (T : Finset (Vec k))
+    (hTsub : T ⊆ grid n k) {s : Fin k → ℝ} (hs : IsTernary s)
     (a : Vec k) (ha : a = clyChooseBalanced n T) :
-    2 * (T.filter (fun y => y.toVec ∈ PyrUnion s (shiftVec a 2 s))).card ≤ T.card := by
+    2 * (T.filter (fun y => y ∈ PyrUnion s (shiftVec a 2 s))).card ≤ T.card := by
   subst ha
   choose φ hφ using fun j =>
     pyrUnion_disjoint_pyramid (k := k) (clyChooseBalanced n T) hs j
-  have hbal := clyChooseBalanced_spec n T (fun y hy => hTsub hy) φ
+  have hbal := clyChooseBalanced_spec n T hTsub φ
   set A := T.filter
-    (fun y => ∃ i, y.toVec ∈ Pyramid i (φ i) (clyChooseBalanced n T)) with hA
+    (fun y => ∃ i, y ∈ Pyramid i (φ i) (clyChooseBalanced n T)) with hA
   set B := T.filter
-    (fun y => y.toVec ∈ PyrUnion s (shiftVec (clyChooseBalanced n T) 2 s)) with hB
-  have hcardA : T.card ≤ 2 * A.card := by
-    have h1 : ((T : Set (IntVec k)) ∩
-        {y | ∃ i, y.toVec ∈ Pyramid i (φ i) (clyChooseBalanced n T)}).ncard = A.card := by
-      rw [hA]; exact ncard_coe_inter_setOf _ _
-    rw [← h1, ← Set.ncard_coe_finset T]
-    exact hbal
+    (fun y => y ∈ PyrUnion s (shiftVec (clyChooseBalanced n T) 2 s)) with hB
+  have hcardA : T.card ≤ 2 * A.card := hbal
   have hdisj : Disjoint A B := by
     rw [Finset.disjoint_left]
     intro y hyA hyB
@@ -619,9 +523,8 @@ theorem clyStep_halving [NeZero k] (n : ℕ) (T : Finset (IntVec k))
     rwa [Finset.card_union_of_disjoint hdisj] at this
   omega
 
-
 /-- The point returned always lies in the unit cube. -/
-theorem clyStep_run_in_unit_cube (n : ℕ) (δ : ℝ) (N : ℕ) (T : Finset (IntVec k))
+theorem clyStep_run_in_unit_cube (n : ℕ) (δ : ℝ) (N : ℕ) (T : Finset (Vec k))
     (f : Vec k → Vec k) (hn : 0 < n) : InUnitCube ((clyStep n δ N T).run f) := by
   have hnR : (0 : ℝ) < n := by exact_mod_cast hn
   induction N generalizing T with
@@ -632,10 +535,9 @@ theorem clyStep_run_in_unit_cube (n : ℕ) (δ : ℝ) (N : ℕ) (T : Finset (Int
     split_ifs
     · simp only [QueryAlg.run_pure]
       intro i
-      obtain ⟨h1, h2⟩ := clyChooseBalanced_mem_cubeBox n T i
+      obtain ⟨h1, h2⟩ := clyChooseBalanced_mem_cube n T i
       exact Set.mem_Icc.mpr ⟨div_nonneg h1 hnR.le, (div_le_one hnR).mpr h2⟩
     · exact ih _
-
 
 /-! ## Correctness -/
 
@@ -652,16 +554,15 @@ theorem clyStep_correct [NeZero k] {δ : ℝ} (hδ0 : 0 < δ) (hδ1 : δ ≤ 1)
     {f : Vec k → Vec k} {lam : ℝ} (hf : IsLInfContraction f lam)
     {xs : Vec k} (hxs_cube : ∀ i, 0 ≤ xs i ∧ xs i ≤ (n : ℝ))
     (hxs_fix : gMap n δ f xs = xs) :
-    ∀ (N : ℕ) (T : Finset (IntVec k)), T ⊆ EVEN n k →
-      (∀ y ∈ EVEN n k, linfDist y.toVec xs ≤ 1 → y ∈ T) →
+    ∀ (N : ℕ) (T : Finset (Vec k)), T ⊆ grid n k →
+      (∀ y ∈ grid n k, linfDist y xs ≤ 1 → y ∈ T) →
       T.card < 2 ^ N →
       linfDist ((clyStep n δ N T).run f) (f ((clyStep n δ N T).run f)) ≤ 2 * δ := by
   have hnR : (0 : ℝ) < n := by exact_mod_cast hn
-  -- The candidate set is never empty: some even grid point is near `xs`.
-  have hne : ∀ T : Finset (IntVec k),
-      (∀ y ∈ EVEN n k, linfDist y.toVec xs ≤ 1 → y ∈ T) → T.Nonempty := by
+  have hne : ∀ T : Finset (Vec k),
+      (∀ y ∈ grid n k, linfDist y xs ≤ 1 → y ∈ T) → T.Nonempty := by
     intro T hTinv
-    obtain ⟨y, hy, hyd⟩ := exists_even_near (k := k) (n := n) hxs_cube
+    obtain ⟨y, hy, hyd⟩ := exists_grid_near (n := n) hxs_cube
     exact ⟨y, hTinv y hy hyd⟩
   intro N
   induction N with
@@ -675,8 +576,7 @@ theorem clyStep_correct [NeZero k] {δ : ℝ} (hδ0 : 0 < δ) (hδ1 : δ ≤ 1)
     simp only [QueryAlg.run_bind, QueryAlg.run_ask]
     set a : Vec k := clyChooseBalanced n T with ha
     set qp : Vec k := fun i => a i / (n : ℝ) with hqp
-    -- `qp` lies in the unit cube, so `f qp` does too.
-    have ha_cube : ∀ i, 0 ≤ a i ∧ a i ≤ (n : ℝ) := clyChooseBalanced_mem_cubeBox n T
+    have ha_cube : ∀ i, 0 ≤ a i ∧ a i ≤ (n : ℝ) := clyChooseBalanced_mem_cube n T
     have hqp_cube : InUnitCube qp := by
       intro i
       exact Set.mem_Icc.mpr
@@ -699,13 +599,10 @@ theorem clyStep_correct [NeZero k] {δ : ℝ} (hδ0 : 0 < δ) (hδ1 : δ ≤ 1)
     · -- Failure: the candidate set halves and the invariants persist.
       set s : Fin k → ℝ := fun i => sgnR ((n : ℝ) * ((1 - δ) * f qp i) - a i) with hs_def
       have hs : IsTernary s := fun i => sgnR_spec _
-      -- `g a i = n · (1−δ) · f(qp) i`, so `s` really is `sgn(g(a) − a)`.
       have hga : ∀ i, gMap n δ f a i = (n : ℝ) * ((1 - δ) * f qp i) := by
         intro i; simp only [gMap, hqp]
-      -- `a = n · qp`.
       have haqp : a = fun i => (n : ℝ) * qp i := by
         funext i; simp only [hqp]; field_simp
-      -- The failed test means `a` is far from being a fixed point of `g`.
       have hfar : 16 / δ < linfDist (gMap n δ f a) a := by
         push_neg at htest
         have hrw : linfDist (gMap n δ f a) a
@@ -714,13 +611,11 @@ theorem clyStep_correct [NeZero k] {δ : ℝ} (hδ0 : 0 < δ) (hδ1 : δ ≤ 1)
             haqp, linfDist_smul, abs_of_nonneg hnR.le]
         rw [hrw, linfDist_comm]
         nlinarith [htest, hnδ, hnR]
-      -- Lemma 2 places the fixed point in the doubly shifted union.
       have hlem2 : xs ∈ PyrUnion s (shiftVec a 4 s) := by
         refine fixedPoint_mem_pyrUnion hδ0 hδ1 (gMap n δ f)
           {z : Vec k | ∀ i, 0 ≤ z i ∧ z i ≤ (n : ℝ)}
           (fun x hx y hy => gMap_contract hn hδ0 hδ1 hf x y hx hy)
           ha_cube hxs_cube hxs_fix hfar (fun i => by rw [hs_def, hga i])
-      -- Lemma 3 upgrades it to a unit ball inside the singly shifted union.
       have hlem3 : Around 1 xs ⊆ PyrUnion s (shiftVec a 2 s) :=
         around_subset_pyrUnion (shiftVec a 2 s) hs
           (by rw [shiftVec_shiftVec]; exact hlem2)
@@ -730,11 +625,10 @@ theorem clyStep_correct [NeZero k] {δ : ℝ} (hδ0 : 0 < δ) (hδ1 : δ ≤ 1)
         refine Finset.mem_filter.mpr ⟨hTinv y hy hyd, hlem3 ?_⟩
         exact hyd
       · -- Budget: the candidate set at least halves.
-        show (T.filter (fun y => y.toVec ∈ PyrUnion s (shiftVec a 2 s))).card < 2 ^ N
+        show (T.filter (fun y => y ∈ PyrUnion s (shiftVec a 2 s))).card < 2 ^ N
         have hhalve := clyStep_halving n T hTsub hs a ha
         have hpow : (2 : ℕ) ^ (N + 1) = 2 * 2 ^ N := by ring
         omega
-
 
 /-- The damped map `(1−δ)·f` has a fixed point in the cube; rescaling by `n`
 gives a fixed point of `gMap n δ f` in `[0, n]^k`. -/
@@ -797,21 +691,13 @@ lemma clyGrid_le {ε : ℝ} (hε : 0 < ε) (hε1 : ε ≤ 1) : (clyGrid ε : ℝ
     nlinarith [h2]
   linarith
 
-/-- `|EVEN(n,k)| < 2^(k(log₂ n + 2) + 1)`: the round budget exhausts the grid. -/
-lemma EVEN_card_lt (n k : ℕ) : (EVEN n k).card < 2 ^ (k * (Nat.log 2 n + 2) + 1) := by
-  set L := Nat.log 2 n with hL
-  have hcard : (EVEN n k).card ≤ (n + 1) ^ k := by
-    calc (EVEN n k).card ≤ (IntCube n k).card :=
-          Finset.card_le_card (Finset.filter_subset _ _)
-      _ = (n + 1) ^ k := by
-          unfold IntCube
-          rw [Fintype.card_piFinset]
-          simp [Int.card_Icc]
-  have hstep : n + 1 ≤ 2 ^ (L + 1) := Nat.lt_pow_succ_log_self (by norm_num) n
-  calc (EVEN n k).card ≤ (n + 1) ^ k := hcard
-    _ ≤ (2 ^ (L + 1)) ^ k := Nat.pow_le_pow_left hstep k
-    _ = 2 ^ ((L + 1) * k) := by rw [← pow_mul]
-    _ < 2 ^ (k * (L + 2) + 1) := Nat.pow_lt_pow_right one_lt_two (by nlinarith)
+/-- The round budget exhausts the grid. -/
+lemma grid_card_lt (n k : ℕ) : (grid n k).card < 2 ^ (k * (Nat.log 2 n + 2) + 1) := by
+  have hstep : n + 1 ≤ 2 ^ (Nat.log 2 n + 1) := Nat.lt_pow_succ_log_self (by norm_num) n
+  calc (grid n k).card = (n + 1) ^ k := grid_card n k
+    _ ≤ (2 ^ (Nat.log 2 n + 1)) ^ k := Nat.pow_le_pow_left hstep k
+    _ = 2 ^ ((Nat.log 2 n + 1) * k) := by rw [← pow_mul]
+    _ < 2 ^ (k * (Nat.log 2 n + 2) + 1) := Nat.pow_lt_pow_right one_lt_two (by nlinarith)
 
 lemma natLog_clyGrid_le {ε : ℝ} (hε : 0 < ε) (hε1 : ε ≤ 1) :
     (Nat.log 2 (clyGrid ε) : ℝ)
@@ -836,13 +722,12 @@ lemma natLog_clyGrid_le {ε : ℝ} (hε : 0 < ε) (hε1 : ε ≤ 1) :
       ≤ (Real.log 65 + 2 * Real.log (1 / ε)) / Real.log 2 := hlog
     _ = (Real.log 65 + 2 * Real.log (1 / ε)) * (1 / Real.log 2) := by ring
 
-
 /-! ## Main theorem -/
 
 /-- The assembled algorithm: grid scale `⌈64/ε²⌉`, accuracy `δ = ε/2`,
 `O(k log(1/ε))` rounds, starting from the full even grid. -/
 noncomputable def clyAlgorithm (k : ℕ) (ε : ℝ) : CQueryAlg k (Vec k) :=
-  clyStep (clyGrid ε) (ε / 2) (clyBudget k ε) (EVEN (clyGrid ε) k)
+  clyStep (clyGrid ε) (ε / 2) (clyBudget k ε) (grid (clyGrid ε) k)
 
 /-- **Correctness of the concrete algorithm.** For every dimension `k`, accuracy
 `ε ∈ (0, 1]` and `ℓ∞`-contraction `f` of any contraction factor, `clyAlgorithm k ε`
@@ -868,8 +753,8 @@ theorem clyAlgorithm_isApproxFixedPoint (k : ℕ) {ε : ℝ} (hε : 0 < ε) (hε
       nlinarith [h1, hε]
     obtain ⟨xs, hxs_cube, hxs_fix⟩ := exists_gMap_fixedPoint hδ0 hδ1 hnpos hf
     have hmain := clyStep_correct hδ0 hδ1 hnpos hnδ hf hxs_cube hxs_fix
-      (clyBudget k ε) (EVEN (clyGrid ε) k) (Finset.Subset.refl _) (fun y hy _ => hy)
-      (EVEN_card_lt (clyGrid ε) k)
+      (clyBudget k ε) (grid (clyGrid ε) k) (Finset.Subset.refl _) (fun y hy _ => hy)
+      (grid_card_lt (clyGrid ε) k)
     exact ⟨clyStep_run_in_unit_cube _ _ _ _ _ hnpos, by
       have : linfDist ((clyAlgorithm k ε).run f) (f ((clyAlgorithm k ε).run f))
           ≤ 2 * (ε / 2) := hmain
@@ -947,6 +832,6 @@ theorem cly_query_complexity :
       ⟨clyAlgorithm_isApproxFixedPoint k hε hε1 f hf, ?_⟩⟩
   refine le_trans ?_ (clyBudget_le hε hε1 k)
   exact_mod_cast clyStep_queries (clyGrid ε) (ε / 2) (clyBudget k ε) f
-    (EVEN (clyGrid ε) k)
+    (grid (clyGrid ε) k)
 
 end Geometry
