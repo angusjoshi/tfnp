@@ -221,6 +221,128 @@ a halfspace). We have query budget to spend: CLY use `O(d² log 1/ε)` and poly 
 `poly(d)` queries around `c` suffice to eliminate `d − 2` coordinates is, I
 think, the single most promising concrete question in this direction.
 
+## 3.3 The star-kernel, its collapse, and a working hit-and-run algorithm
+
+*(Added after a session of analysis + computation; scripts in
+`notes/polytime_experiments/`. This supersedes parts of §4 below.)*
+
+Since every convex-outer-approximation method is provably dead (§3.2,
+`conv K = ℝ^d`), the entire problem is: **sample / estimate the volume of the
+non-convex `X_t = box ∩ ⋂_r K(c^r,s^r)` in poly time.** Three findings.
+
+### Clean membership and the Kernel Theorem
+
+In sign-aligned coordinates `w_i = s_i(y_i − c_i)`, the cut set has a one-line
+membership test:
+
+```
+y ∈ K(c,s)  ⟺  max_i w_i + min_i w_i ≥ 0
+```
+
+(the largest coordinate dominates the most-negative). Verified over 2·10⁵ random
+points, all `d` (`verify_kernel.py`).
+
+`K(c,s)` is **star-shaped about its apex `c`** (each pyramid is a convex cone
+with apex `c`). Its kernel — the set of points that see all of `K` — is exactly:
+
+> **Kernel Theorem.**
+> `ker(K(c,s)) = { z : s_i(z_i−c_i) + s_j(z_j−c_j) ≥ 0  for all i≠j }`
+> — an intersection of `\binom d2` halfspaces: a **convex polyhedral cone**,
+> apex `c`, `O(d²)` facets.
+
+*Proof of `⊇`:* for `z` with all pairwise `w`-sums `≥0` and any `y∈K`, along
+`q=λz+(1−λ)y` pick `b=argmax_j y_j`; then `q_b+q_a = λ(w^z_a+w^z_b)+(1−λ)(y_a+y_b)
+≥0` where `a=argmin q` (using `y_a+y_b ≥ min y+max y ≥ 0`), and a symmetric
+argument covers `a=b`. So `q∈K`. `⊆` confirmed numerically: every violator, even
+`w`-pair-sum `= −0.008`, exhibits a ray that exits and re-enters `K`.
+
+**Consequence.** `⋂_r ker(K(c^r,s^r)) ∩ box` is an intersection of `O(td²)`
+halfspaces — a **poly-size polytope**. So "is `X_t` star-shaped?" is a single
+LP, and if feasible, `X_t` is star-shaped about any solution `p_0`; then `X_t` is
+uniformly samplable *exactly* by ray-shooting from `p_0` (radial function
+`ρ(u)=min_r ρ_r(u)`, each `ρ_r` a poly computation) — **no Markov mixing at
+all**.
+
+### The collapse (negative)
+
+The catch: the kernel polytope **collapses** as cuts accumulate
+(`starshape_collapse.py`). Querying at unconstrained balanced points, `⋂_r ker`
+goes empty after `O(d)` rounds (`X_t` stops being star-shaped). Constraining the
+query to stay in the kernel keeps star-shapedness but the kernel margin decays
+`1.0 → 0.34 → 0.08 → 0.008 → 0` and the volume **stalls** — a kernel-confined
+point is too peripheral to halve `X_t`. **Star-shapedness and progress are
+incompatible past ~`O(d)` rounds**, so the exact ray-shooting sampler is only
+valid early. Star-shapedness was only *sufficient* for sampling, not necessary.
+
+### Hit-and-run: a concrete candidate randomised algorithm
+
+Drop star-shapedness; sample `X_t` by **hit-and-run** (only needs
+connectivity + conductance). Along a random line, `X_t ∩ line` is a union of
+intervals — sample uniformly among the feasible `t`'s, which can hop between
+cells. The full loop (`algo_linear.py`, `algo_topical.py`):
+
+```
+maintain cut list; each round:
+  S  = hitrun(X_t)                       # ~50 samples, warm-started at the
+  bp = argmin_c Σ_{y∈S} ‖y−c‖∞  (LP)     #   previous query pt (always ∈ X_{t+1})
+  query f(bp); s = ternary sign(f(bp)−bp); append cut K(bp,s)
+```
+
+`bp` is always in `X_{t+1}` (apex of its own cut) — a free warm start. Empirics:
+
+* **Easy (linear) `f=clip(λMx+b)`:** clean geometric convergence, `‖bp−x*‖∞:
+  0.5 → 10⁻³` in `~10d` rounds, `d=4,5,6`. **Rate independent of `λ`**: identical
+  trace at `λ=0.9995` and `λ=1−10⁻⁷` (where value iteration needs `~10⁷` steps).
+  *Caveat:* linear fixed points are trivially poly (solve `(I−λM)x=b`), so this
+  only validates the machinery.
+* **Hard (topical min/max/avg, i.e. Shapley/SSG-style) `(1−δ)`-contractions:**
+  genuine `δ`-independent progress and good approximate fixed points
+  (`‖f(bp)−bp‖ ~ 10⁻⁴`), but convergence to `x*` is **slower and noisier**:
+  `‖bp−x*‖∞` tracks the region diameter (so `x*` sits near the *edge* of `X_t`)
+  and the region shrinks slower than the ideal `2^{1/d}`/round. With light
+  hit-and-run the sample spread intermittently **collapses to a point** (mixing
+  failure); heavier hit-and-run removes the collapse but the shrinkage is still
+  sub-ideal within budget.
+
+**The ternary sign is essential** (matches §5.2): forcing `s_i=1` on a
+near-zero displacement makes invalid cuts that exclude `x*` and the algorithm
+converges to the wrong point. Excluding `{i:|v_i|≤tol}` from the union fixes it.
+
+### The distilled crux and its cross-field homes
+
+The whole open problem is now a single, standard-shaped question:
+
+> **Does hit-and-run (or the ball walk) mix in `poly(d,t)` time on
+> `X_t = box ∩ ⋂_{r≤t} K(c^r,s^r)`, an intersection of `ℓ∞` pyramid-unions?**
+
+If yes ⟹ a randomised `poly(d, log 1/ε)`-time algorithm (hence SSG ∈ BPP = P),
+so a full proof is expected to be very hard — but the *shape* of the question is
+now the well-developed geometry-of-Markov-chains kind, not "solve a game."
+Structural handles to exploit: the body is star-shaped early (Kernel Theorem);
+each cut's removed set is the **point reflection** of the kept set through `c`
+(§3.2); the apexes are Fermat–Weber centers of nested, geometrically shrinking
+regions (non-adversarial). The empirical spread-collapses on hard instances are
+the honest warning sign that the isoperimetry may genuinely degrade.
+
+**Reductions to other fields** (a question worth keeping in view):
+
+1. **Geometry of MCMC / sampling non-convex bodies.** The direct target above.
+   Convex-body sampling is the Dyer–Frieze–Kannan / Lovász–Vempala theory;
+   here the frontier is sampling **unions/intersections of cones**, or
+   **star-shaped / bounded-non-convexity** bodies — isoperimetry of such bodies
+   is largely open and this is a clean, motivated instance.
+2. **Nonlinear Perron–Frobenius / tropical (max-plus) spectral theory.**
+   `ℓ∞`-nonexpansive *monotone* maps are exactly **topical functions**
+   (Gaubert–Gunawardena, Nussbaum); their fixed points are tropical
+   eigenproblems, and this is the field the whole problem is a special case of.
+   Ties directly to **mean-payoff and stochastic games**.
+3. **Approximate counting / statistical mechanics.** `vol(X_t)` is the partition
+   function of a Gibbs measure on the product space `[d]^t` with weights =
+   cell volumes (§3.1); sampling ≡ counting (JVV self-reducibility). A `#P`-style
+   problem with special geometric weights.
+4. **Stochastic games / CLS = PPAD∩PLS.** The complexity home
+   (Condon; Fearnley–Goldberg–Hollender–Savani); poly-time here ⟹ SSG ∈ P.
+
 ## 4. Recommended next steps
 
 **Research, in decreasing order of expected value:**

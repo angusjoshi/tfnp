@@ -1,0 +1,336 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{microtype}
+\usepackage[hidelinks]{hyperref}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}
+
+% Notation
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Rk}{\R^{k}}
+\newcommand{\linf}[1]{\lVert #1 \rVert_{\infty}}
+\newcommand{\abs}[1]{\lvert #1 \rvert}
+\newcommand{\card}[1]{\lvert #1 \rvert}
+\newcommand{\Pyr}{\mathcal{P}}
+\newcommand{\sgn}{\sigma}
+\newcommand{\FW}{\Phi}
+\DeclareMathOperator*{\argmin}{arg\,min}
+
+\title{A Brouwer-free existence proof of balanced points\\
+\large via the $\ell_\infty$ Fermat--Weber functional}
+\author{Angus Joshi}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We give a short, self-contained proof that every finite point set
+$T\subset\Rk$ admits a \emph{balanced point}: a point $c$ such that, for every
+sign vector $\sgn\in\{-1,+1\}^k$, the union of the $k$ CLY pyramids anchored at
+$c$ with signs $\sgn$ captures at least half of $T$. Balanced points are the
+combinatorial engine of the Chen--Li--Yannakakis algorithm for computing
+fixed points of $\ell_\infty$-contractions~\cite{CLY24}. Where CLY establish
+existence through Brouwer's fixed point theorem, we instead take $c$ to be any
+minimiser of the $\ell_\infty$ Fermat--Weber functional
+$\FW(c)=\sum_{y\in T}\linf{y-c}$; the balancing condition then falls out of the
+first-order optimality of $\FW$ along the $2^k$ coordinate-sign directions.
+Existence of a minimiser is pure compactness (Weierstrass), so the argument
+uses no fixed-point topology. The development is formalised in Lean~4.
+\end{abstract}
+
+\section{Setup}
+
+Fix a dimension $k\ge 1$. Points of $\Rk$ are written $x=(x_1,\dots,x_k)$, and
+\[
+  \linf{x-y}\;=\;\max_{1\le i\le k}\abs{x_i-y_i}
+\]
+is the $\ell_\infty$ distance. A \emph{sign vector} is $\sgn\in\{-1,+1\}^k$,
+with components $\sgn_i$.
+
+\begin{definition}[Pyramid]\label{def:pyramid}
+For $i\in\{1,\dots,k\}$, a sign $\varphi\in\{-1,+1\}$ and an anchor $x\in\Rk$,
+the \emph{pyramid} is
+\[
+  \Pyr_i(x,\varphi)\;=\;\bigl\{\,y\in\Rk \;:\; \varphi\,(y_i-x_i)=\linf{y-x}\,\bigr\}.
+\]
+It is the set of points whose $\ell_\infty$ distance to $x$ is realised in
+coordinate $i$ with sign $\varphi$.
+\end{definition}
+
+\begin{definition}[Balanced point]\label{def:balanced}
+Let $T\subset\Rk$ be finite. A point $c\in\Rk$ is \emph{balanced for $T$} if for
+every sign vector $\sgn\in\{-1,+1\}^k$
+\[
+  \Bigl\lvert\, T\cap \textstyle\bigcup_{i=1}^{k}\Pyr_i(c,\sgn_i)\,\Bigr\rvert
+  \;\ge\; \tfrac12\,\card{T}.
+\]
+\end{definition}
+
+Our goal is Theorem~\ref{thm:main}: a balanced point always exists, and can be
+taken inside any axis-aligned box containing $T$.
+
+\section{The signed support function}
+
+The whole argument runs through one auxiliary quantity, which linearises the
+$\ell_\infty$ distance once a sign vector is fixed.
+
+\begin{definition}[Signed support]\label{def:sgnsup}
+For a sign vector $\sgn$ and points $a,b\in\Rk$, set
+\[
+  G_\sgn(a,b)\;=\;\max_{1\le i\le k}\;\sgn_i\,(b_i-a_i).
+\]
+\end{definition}
+
+Two elementary facts about a maximum over the finite index set $\{1,\dots,k\}$
+are used repeatedly and stated once:
+\begin{enumerate}
+\item[(M1)] the maximum is \emph{attained}: there is an index $i$ with
+  $\sgn_i(b_i-a_i)=G_\sgn(a,b)$;
+\item[(M2)] it commutes with adding a constant:
+  $\max_i\bigl(t_i+\lambda\bigr)=\bigl(\max_i t_i\bigr)+\lambda$.
+\end{enumerate}
+
+\begin{lemma}[Identity 1: splitting the distance]\label{lem:id1}
+For all $\sgn$ and all $c,y\in\Rk$,
+\[
+  \linf{y-c}\;=\;\max\bigl(\,G_\sgn(c,y),\;G_\sgn(y,c)\,\bigr).
+\]
+\end{lemma}
+
+\begin{proof}
+For each coordinate $i$, $\abs{\sgn_i}=1$ gives
+$\abs{y_i-c_i}=\abs{\sgn_i(y_i-c_i)}=\max\bigl(\sgn_i(y_i-c_i),\,\sgn_i(c_i-y_i)\bigr)$,
+using $\abs{t}=\max(t,-t)$. Taking the maximum over $i$ and distributing the
+outer $\max$ over the two families,
+\[
+  \linf{y-c}=\max_i \abs{y_i-c_i}
+  =\max\Bigl(\max_i \sgn_i(y_i-c_i),\ \max_i \sgn_i(c_i-y_i)\Bigr)
+  =\max\bigl(G_\sgn(c,y),G_\sgn(y,c)\bigr).\qedhere
+\]
+\end{proof}
+
+\begin{lemma}[Identity 2: capture $=$ dominance]\label{lem:id2}
+For all $\sgn$ and all $c,y\in\Rk$,
+\[
+  y\in\bigcup_{i=1}^{k}\Pyr_i(c,\sgn_i)
+  \quad\Longleftrightarrow\quad
+  G_\sgn(y,c)\;\le\;G_\sgn(c,y).
+\]
+\end{lemma}
+
+\begin{proof}
+By Definition~\ref{def:pyramid}, $y\in\bigcup_i\Pyr_i(c,\sgn_i)$ means there is
+an index $i$ with $\sgn_i(y_i-c_i)=\linf{y-c}$.
+
+$(\Rightarrow)$ For that $i$ we have
+$\linf{y-c}=\sgn_i(y_i-c_i)\le G_\sgn(c,y)$, while always
+$G_\sgn(c,y)\le\linf{y-c}$ by Lemma~\ref{lem:id1}. Hence
+$\linf{y-c}=G_\sgn(c,y)$, and Lemma~\ref{lem:id1} forces the other branch to be
+no larger: $G_\sgn(y,c)\le G_\sgn(c,y)$.
+
+$(\Leftarrow)$ If $G_\sgn(y,c)\le G_\sgn(c,y)$ then by Lemma~\ref{lem:id1}
+$\linf{y-c}=G_\sgn(c,y)$. By~(M1) pick $i$ attaining
+$G_\sgn(c,y)=\sgn_i(y_i-c_i)$; then $\sgn_i(y_i-c_i)=\linf{y-c}$, i.e.
+$y\in\Pyr_i(c,\sgn_i)$.
+\end{proof}
+
+\section{The sign-aligned translation}
+
+The optimality argument perturbs the anchor by a small step \emph{against} the
+sign vector.
+
+\begin{definition}[Shifted anchor]\label{def:shift}
+For $\sgn$, $c\in\Rk$ and $h\in\R$, let $c^{\sgn,h}\in\Rk$ be
+$\bigl(c^{\sgn,h}\bigr)_i = c_i-h\,\sgn_i$.
+\end{definition}
+
+\begin{lemma}[Effect of the shift on $G_\sgn$]\label{lem:shiftG}
+For all $\sgn$, $c,y\in\Rk$ and $h\in\R$,
+\[
+  G_\sgn\!\bigl(c^{\sgn,h},\,y\bigr)=G_\sgn(c,y)+h,
+  \qquad
+  G_\sgn\!\bigl(y,\,c^{\sgn,h}\bigr)=G_\sgn(y,c)-h.
+\]
+\end{lemma}
+
+\begin{proof}
+Using $\sgn_i^2=1$,
+\[
+  \sgn_i\bigl(y_i-(c_i-h\sgn_i)\bigr)=\sgn_i(y_i-c_i)+h\sgn_i^2=\sgn_i(y_i-c_i)+h,
+\]
+so the first identity follows from~(M2). Symmetrically
+$\sgn_i\bigl((c_i-h\sgn_i)-y_i\bigr)=\sgn_i(c_i-y_i)-h$, giving the second.
+\end{proof}
+
+\begin{lemma}[Identity 3: effect on a single distance term]\label{lem:id3}
+For all $\sgn$, $c,y\in\Rk$ and $h\in\R$,
+\[
+  \linf{y-c^{\sgn,h}}
+  \;=\;\max\bigl(\,G_\sgn(c,y)+h,\ \;G_\sgn(y,c)-h\,\bigr).
+\]
+\end{lemma}
+
+\begin{proof}
+Apply Lemma~\ref{lem:id1} to the anchor $c^{\sgn,h}$ and rewrite both branches
+with Lemma~\ref{lem:shiftG}.
+\end{proof}
+
+\section{The Fermat--Weber functional and its minimiser}
+
+\begin{definition}[Fermat--Weber functional]\label{def:fw}
+For finite $T\subset\Rk$, let
+$\displaystyle \FW(c)=\sum_{y\in T}\linf{y-c}$.
+\end{definition}
+
+$\FW$ is a finite sum of $\ell_\infty$ distances, hence continuous and convex on
+$\Rk$. We only need that it attains a global minimum; this is Weierstrass on a
+box, with clamping upgrading the box minimum to a global one.
+
+\begin{lemma}[Global minimiser]\label{lem:min}
+Let $T\subset\Rk$ be finite and let $B=[l_1,h_1]\times\cdots\times[l_k,h_k]$ be
+any box with $T\subseteq B$. Then $\FW$ attains a global minimum at some
+$c^\star\in B$: $\FW(c^\star)\le\FW(z)$ for all $z\in\Rk$.
+\end{lemma}
+
+\begin{proof}
+$B$ is compact and $\FW$ is continuous, so by the extreme value theorem $\FW$
+attains a minimum over $B$ at some $c^\star\in B$. It remains to show this beats
+every $z\in\Rk$, not merely every point of $B$. Let $\pi_B\colon\Rk\to B$ be the
+coordinatewise clamp, $(\pi_B z)_i=\min\{h_i,\max\{l_i,z_i\}\}$. For $y\in B$ and
+any $t\in\R$ one has, in each coordinate,
+$\abs{y_i-(\pi_B z)_i}\le\abs{y_i-z_i}$ (clamping a point into an interval never
+increases its distance to a point already in the interval). Taking the maximum
+over $i$ gives $\linf{y-\pi_B z}\le\linf{y-z}$ for every $y\in T\subseteq B$,
+hence $\FW(\pi_B z)\le\FW(z)$. Therefore
+$\FW(c^\star)\le\FW(\pi_B z)\le\FW(z)$.
+\end{proof}
+
+\section{Existence of a balanced point}
+
+\begin{theorem}[Balanced point exists]\label{thm:main}
+Let $T\subset\Rk$ be finite and let $B$ be any box containing $T$. Any global
+minimiser $c^\star\in B$ of $\FW$ (Lemma~\ref{lem:min}) is balanced for $T$. In
+particular a balanced point exists inside $B$.
+\end{theorem}
+
+\begin{proof}
+Write $c=c^\star$ and fix an arbitrary sign vector $\sgn$. Partition $T$ into the
+\emph{captured} and \emph{bad} parts,
+\[
+  K=\{\,y\in T: G_\sgn(y,c)\le G_\sgn(c,y)\,\},
+  \qquad
+  \mathrm{Bad}=T\setminus K,
+\]
+so $\card{\mathrm{Bad}}+\card{K}=\card{T}$. By Lemma~\ref{lem:id2}, $K$ is
+exactly $T\cap\bigcup_i\Pyr_i(c,\sgn_i)$, so it suffices to prove
+\begin{equation}\label{eq:goal}
+  \card{\mathrm{Bad}}\;\le\;\card{K},
+\end{equation}
+which yields $\card{T}=\card{\mathrm{Bad}}+\card{K}\le 2\card{K}$, i.e. the
+balancing inequality for this $\sgn$. As $\sgn$ was arbitrary, $c$ is balanced.
+
+If $\mathrm{Bad}=\varnothing$ then \eqref{eq:goal} is immediate. Otherwise every
+$y\in\mathrm{Bad}$ satisfies $G_\sgn(c,y)<G_\sgn(y,c)$ (negation of the defining
+inequality of $K$), so the finite positive quantity
+\[
+  h\;=\;\tfrac12\min_{y\in\mathrm{Bad}}\bigl(G_\sgn(y,c)-G_\sgn(c,y)\bigr)\;>\;0
+\]
+is well defined, and for every $y\in\mathrm{Bad}$,
+\begin{equation}\label{eq:gap}
+  G_\sgn(y,c)-G_\sgn(c,y)\;\ge\;2h.
+\end{equation}
+
+We evaluate $\FW$ at the shifted anchor $c^{\sgn,h}$ termwise, using
+Lemma~\ref{lem:id3} together with the identity
+$\linf{y-c}=\max\bigl(G_\sgn(c,y),G_\sgn(y,c)\bigr)$ of Lemma~\ref{lem:id1}.
+
+\emph{For $y\in K$}: here $G_\sgn(c,y)\ge G_\sgn(y,c)$, so
+$\linf{y-c}=G_\sgn(c,y)$, and since also
+$G_\sgn(c,y)+h\ge G_\sgn(y,c)-h$,
+\[
+  \linf{y-c^{\sgn,h}}
+  =\max\bigl(G_\sgn(c,y)+h,\ G_\sgn(y,c)-h\bigr)
+  =G_\sgn(c,y)+h=\linf{y-c}+h.
+\]
+
+\emph{For $y\in\mathrm{Bad}$}: here $G_\sgn(y,c)>G_\sgn(c,y)$, so
+$\linf{y-c}=G_\sgn(y,c)$, and \eqref{eq:gap} gives
+$G_\sgn(y,c)-h\ge G_\sgn(c,y)+h$, so
+\[
+  \linf{y-c^{\sgn,h}}
+  =\max\bigl(G_\sgn(c,y)+h,\ G_\sgn(y,c)-h\bigr)
+  =G_\sgn(y,c)-h=\linf{y-c}-h.
+\]
+
+Summing over $T=K\sqcup\mathrm{Bad}$,
+\[
+  \FW\!\bigl(c^{\sgn,h}\bigr)
+  =\FW(c)+h\,\card{K}-h\,\card{\mathrm{Bad}}.
+\]
+By global minimality (Lemma~\ref{lem:min}),
+$\FW(c)\le\FW\!\bigl(c^{\sgn,h}\bigr)$, hence
+$0\le h\bigl(\card{K}-\card{\mathrm{Bad}}\bigr)$. Since $h>0$, this is
+exactly~\eqref{eq:goal}.
+\end{proof}
+
+\begin{corollary}
+Every finite $T\subset\Rk$ has a balanced point. If $T$ lies in
+$[0,n]^k$ (e.g.\ $T$ a set of grid points), a balanced point can be taken in
+$[0,n]^k$.
+\end{corollary}
+
+\section{Remarks}
+
+\begin{remark}[What was removed]
+CLY prove existence of the balanced point with Brouwer's fixed point theorem
+(applied to a sequence of continuous pyramid-mass--balancing self-maps, together
+with a Bolzano--Weierstrass extraction)~\cite{CLY24}. The proof above replaces
+that entirely: the only non-elementary ingredient is the extreme value theorem
+in Lemma~\ref{lem:min}, and the balancing itself is the first-order optimality
+condition of $\FW$ read off along the $2^k$ directions $-\sgn$. No parity or
+even-grid hypothesis on the candidate set is needed; such conditions arise in
+CLY only to support a rounding step this route does not use.
+\end{remark}
+
+\begin{remark}[Even the compactness can go]
+Lemma~\ref{lem:min} is the sole use of topology, and it too is avoidable.
+$\FW$ is convex and piecewise-linear, its facets cut out by the hyperplanes
+$c_i=y_i$, $c_i-c_j=y_i-y_j$ and $c_i+c_j=y_i+y_j$ for $y\in T$; an affine
+function on a polytope attains its minimum at a vertex, so $\FW$ attains its
+global minimum on the \emph{finite} set $V$ of vertices of this arrangement.
+A global minimiser can then be obtained by well-ordering, i.e.\ by taking
+$\argmin_{v\in V}\FW(v)$ over a finite set, with no continuity or compactness at
+all. (For $k=1$ this degenerates to the familiar fact that a median of $T$
+minimises $\sum_{y}\abs{y-c}$ and is attained at a data point; for $k\ge 2$ the
+coupling of coordinates in $\ell_\infty$ means $V$ is genuinely richer than the
+coordinate values of $T$.) The compactness form is retained above because it is
+the shorter path in the current Lean development.
+\end{remark}
+
+\begin{remark}[Formalisation]
+The results of this note are formalised in Lean~4 (\texttt{Tfnp/Contraction.lean}).
+Lemmas~\ref{lem:id1}--\ref{lem:id3} correspond to
+\texttt{linfDist\_eq\_max\_sgnSup}, \texttt{mem\_pyramidUnion\_iff} and
+\texttt{linfDist\_shiftBase}; Lemma~\ref{lem:min} to
+\texttt{exists\_global\_min\_fermatWeber}; and Theorem~\ref{thm:main} to
+\texttt{exists\_balanced\_point\_box}.
+\end{remark}
+
+\begin{thebibliography}{9}
+\bibitem{CLY24}
+Xi Chen, Yuhao Li, and Mihalis Yannakakis.
+\newblock Computing a fixed point of contraction maps in polynomial queries.
+\newblock In \emph{STOC 2024}. \texttt{arXiv:2403.19911}.
+\end{thebibliography}
+
+\end{document}

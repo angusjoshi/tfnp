@@ -8,6 +8,8 @@ import Tfnp.QueryModel
 import Tfnp.Shrinking
 import Tfnp.Contraction
 import Tfnp.Algorithm
+import Tfnp.HitRun
+import Tfnp.PolyTime
 import Tfnp.PPAD
 import Tfnp.BlackBox
 import Tfnp.Circuit
