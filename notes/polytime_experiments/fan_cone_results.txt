@@ -1,0 +1,12 @@
+=== ssg  d=6 ===
+  t= 6 apexdisp med/max=0.100/0.216 diam=0.938 cones=1646 H(cone)=7.31 cells= 134 H(cell)=3.73 H(cell|cone)=0.20
+  t=10 apexdisp med/max=0.134/0.336 diam=0.901 cones=1071 H(cone)=6.74 cells= 310 H(cell)=4.50 H(cell|cone)=0.63
+  t=14 apexdisp med/max=0.157/0.389 diam=0.851 cones= 552 H(cone)=5.81 cells= 500 H(cell)=5.15 H(cell|cone)=1.34
+=== adv  d=6 ===
+  t= 6 apexdisp med/max=0.021/0.064 diam=0.999 cones=1885 H(cone)=7.49 cells=  76 H(cell)=3.50 H(cell|cone)=0.00
+  t=10 apexdisp med/max=0.010/0.064 diam=0.999 cones=1809 H(cone)=7.44 cells=  78 H(cell)=3.44 H(cell|cone)=0.00
+  t=14 apexdisp med/max=0.004/0.064 diam=1.000 cones=1713 H(cone)=7.36 cells=  73 H(cell)=3.36 H(cell|cone)=0.04
+=== cellmax d=6 ===
+  t= 6 apexdisp med/max=0.041/0.078 diam=0.994 cones=1769 H(cone)=7.40 cells= 266 H(cell)=4.04 H(cell|cone)=0.06
+  t=10 apexdisp med/max=0.041/0.100 diam=0.972 cones=1408 H(cone)=7.09 cells= 444 H(cell)=5.24 H(cell|cone)=0.30
+  t=14 apexdisp med/max=0.031/0.100 diam=0.985 cones= 965 H(cone)=6.57 cells= 652 H(cell)=5.60 H(cell|cone)=0.71

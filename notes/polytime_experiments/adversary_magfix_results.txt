@@ -1,0 +1,84 @@
+=== d=5 control (toward-oracle): components must stay 1 ===
+  t= 1 N= 2200 comps=  1 pockets=   0 sizes[1.00] kept=0.485 menu=  32 rank=0 next=None
+  t= 2 N= 2200 comps=  1 pockets= 179 sizes[1.00] kept=0.510 menu=  16 rank=0 next=None
+  t= 3 N= 2200 comps=  1 pockets= 437 sizes[1.00] kept=0.545 menu=  32 rank=0 next=None
+  t= 4 N= 2200 comps=  1 pockets= 467 sizes[1.00] kept=0.485 menu=  16 rank=0 next=None
+  t= 5 N= 2200 comps=  1 pockets= 670 sizes[1.00] kept=0.523 menu=  16 rank=0 next=None
+  t= 6 N= 2200 comps=  1 pockets= 838 sizes[1.00] kept=0.465 menu=   8 rank=0 next=None
+  t= 7 N= 2200 comps=  1 pockets=1002 sizes[1.00] kept=0.512 menu=   4 rank=0 next=None
+  t= 8 N= 2200 comps=  1 pockets=1197 sizes[1.00/0.00] kept=0.545 menu=   4 rank=0 next=None
+  t= 9 N= 2200 comps=  1 pockets=1140 sizes[1.00] kept=0.460 menu=   4 rank=0 next=None
+  t=10 N= 2200 comps=  1 pockets=1899 sizes[1.00/0.00/0.00/0.00] kept=0.540 menu=   2 rank=0 next=None
+  t=11 N= 2200 comps=  1 pockets=1904 sizes[1.00/0.00/0.00/0.00] kept=0.541 menu=   1 rank=0 next=None
+  t=12 N= 2200 comps=  1 pockets=1825 sizes[1.00/0.00/0.00/0.00] kept=0.469 menu=   2 rank=0 next=None
+=== d=5 seed=1 ADVERSARY (T=12) ===
+  t= 1 N= 2200 comps=  1 pockets=   0 sizes[1.00] kept=0.460 menu=  32 rank=0 next=(1, 112)
+  t= 2 N= 2200 comps=  1 pockets= 176 sizes[1.00] kept=0.520 menu=  32 rank=0 next=(1, 386)
+  t= 3 N= 2200 comps=  1 pockets= 616 sizes[1.00] kept=0.512 menu=  32 rank=0 next=(1, 976)
+  t= 4 N= 2200 comps=  1 pockets=1971 sizes[1.00] kept=0.483 menu=  32 rank=0 next=(2, 1337)
+  t= 5 N= 2200 comps=  1 pockets=3149 sizes[0.99/0.00/0.00/0.00] kept=0.497 menu=  32 rank=0 next=(3, 1579)
+  t= 6 N= 2200 comps=  1 pockets=3629 sizes[1.00/0.00/0.00/0.00] kept=0.490 menu=  32 rank=0 next=(10, 1614)
+  t= 7 N= 2200 comps=  1 pockets=4040 sizes[0.99/0.00/0.00/0.00] kept=0.509 menu=  32 rank=0 next=(17, 1692)
+  t= 8 N= 2200 comps=  5 pockets=3901 sizes[0.86/0.04/0.03/0.03] kept=0.547 menu=  32 rank=0 next=(16, 1712)
+  t= 9 N= 2200 comps=  9 pockets=4023 sizes[0.61/0.09/0.07/0.06] kept=0.530 menu=  32 rank=0 next=(20, 1643)
+  t=10 N= 2200 comps= 14 pockets=3983 sizes[0.18/0.18/0.11/0.10] kept=0.483 menu=  32 rank=0 next=(20, 1579)
+  t=11 N= 2200 comps= 19 pockets=4167 sizes[0.13/0.09/0.08/0.08] kept=0.482 menu=  32 rank=0 next=(24, 1659)
+  t=12 N= 2200 comps= 18 pockets=4093 sizes[0.17/0.12/0.08/0.07] kept=0.504 menu=  32 rank=0 next=(20, 1678)
+=== d=5 seed=2 ADVERSARY (T=12) ===
+  t= 1 N= 2200 comps=  1 pockets=   0 sizes[1.00] kept=0.490 menu=  32 rank=0 next=(1, 138)
+  t= 2 N= 2200 comps=  1 pockets= 198 sizes[1.00] kept=0.483 menu=  32 rank=0 next=(1, 473)
+  t= 3 N= 2200 comps=  1 pockets= 672 sizes[1.00] kept=0.480 menu=  32 rank=0 next=(1, 1045)
+  t= 4 N= 2200 comps=  1 pockets=2178 sizes[1.00/0.00] kept=0.501 menu=  32 rank=0 next=(3, 911)
+  t= 5 N= 2200 comps=  1 pockets=1871 sizes[1.00/0.00/0.00/0.00] kept=0.459 menu=  32 rank=0 next=(4, 904)
+  t= 6 N= 2200 comps=  1 pockets=1951 sizes[0.99/0.00/0.00/0.00] kept=0.495 menu=  32 rank=0 next=(5, 783)
+  t= 7 N= 2200 comps=  2 pockets=1869 sizes[0.99/0.01/0.00/0.00] kept=0.481 menu=  32 rank=0 next=(6, 574)
+  t= 8 N= 2200 comps=  1 pockets=1167 sizes[0.99/0.00/0.00/0.00] kept=0.507 menu=  32 rank=0 next=(7, 662)
+  t= 9 N= 2200 comps=  2 pockets=1532 sizes[0.98/0.01/0.00/0.00] kept=0.513 menu=  32 rank=0 next=(6, 734)
+  t=10 N= 2200 comps=  1 pockets=1500 sizes[1.00/0.00/0.00/0.00] kept=0.525 menu=  32 rank=0 next=(3, 891)
+  t=11 N= 2200 comps=  1 pockets=1590 sizes[0.99/0.00/0.00/0.00] kept=0.520 menu=  32 rank=0 next=(3, 686)
+  t=12 N= 2200 comps=  1 pockets=1528 sizes[0.98/0.00/0.00/0.00] kept=0.482 menu=  32 rank=0 next=(5, 791)
+=== d=6 control (toward-oracle): components must stay 1 ===
+  t= 1 N= 2200 comps=  1 pockets=   0 sizes[1.00] kept=0.498 menu=  64 rank=0 next=None
+  t= 2 N= 2200 comps=  1 pockets= 370 sizes[1.00] kept=0.520 menu=  64 rank=0 next=None
+  t= 3 N= 2200 comps=  1 pockets= 504 sizes[1.00] kept=0.453 menu=  64 rank=0 next=None
+  t= 4 N= 2200 comps=  1 pockets= 475 sizes[1.00] kept=0.490 menu=  64 rank=0 next=None
+  t= 5 N= 2200 comps=  1 pockets= 871 sizes[1.00] kept=0.500 menu=  16 rank=0 next=None
+  t= 6 N= 2200 comps=  1 pockets=1815 sizes[1.00/0.00] kept=0.486 menu=  32 rank=0 next=None
+  t= 7 N= 2200 comps=  1 pockets=2366 sizes[1.00/0.00/0.00] kept=0.517 menu=   4 rank=0 next=None
+  t= 8 N= 2200 comps=  1 pockets=3172 sizes[1.00/0.00/0.00] kept=0.425 menu=  16 rank=0 next=None
+  t= 9 N= 2200 comps=  1 pockets=3358 sizes[0.99/0.00/0.00/0.00] kept=0.522 menu=   2 rank=0 next=None
+  t=10 N= 2200 comps=  2 pockets=3128 sizes[0.98/0.01/0.00/0.00] kept=0.529 menu=   4 rank=0 next=None
+  t=11 N= 2200 comps=  2 pockets=3747 sizes[0.97/0.01/0.00/0.00] kept=0.505 menu=   2 rank=0 next=None
+  t=12 N= 2200 comps=  1 pockets=4076 sizes[0.99/0.00/0.00/0.00] kept=0.485 menu=   8 rank=0 next=None
+  t=13 N= 2200 comps=  1 pockets=4363 sizes[0.95/0.00/0.00/0.00] kept=0.415 menu=   1 rank=0 next=None
+  t=14 N= 2200 comps=  1 pockets=4261 sizes[0.97/0.00/0.00/0.00] kept=0.501 menu=   2 rank=0 next=None
+=== d=6 seed=1 ADVERSARY (T=14) ===
+  t= 1 N= 2200 comps=  1 pockets=   0 sizes[1.00] kept=0.501 menu=  64 rank=0 next=(1, 231)
+  t= 2 N= 2200 comps=  1 pockets= 352 sizes[1.00] kept=0.486 menu=  64 rank=0 next=(1, 865)
+  t= 3 N= 2200 comps=  1 pockets=1776 sizes[1.00] kept=0.488 menu=  64 rank=0 next=(1, 1664)
+  t= 4 N= 2200 comps=  1 pockets=4228 sizes[1.00/0.00/0.00/0.00] kept=0.479 menu=  64 rank=0 next=(4, 1935)
+  t= 5 N= 2200 comps=  1 pockets=5281 sizes[0.99/0.00/0.00/0.00] kept=0.509 menu=  64 rank=0 next=(11, 2161)
+  t= 6 N= 2200 comps=  1 pockets=5563 sizes[0.97/0.00/0.00/0.00] kept=0.479 menu=  64 rank=0 next=(17, 2086)
+  t= 7 N= 2200 comps=  3 pockets=5909 sizes[0.93/0.02/0.01/0.00] kept=0.518 menu=  64 rank=0 next=(27, 2286)
+  t= 8 N= 2200 comps=  8 pockets=5775 sizes[0.72/0.05/0.04/0.04] kept=0.545 menu=  64 rank=0 next=(30, 2389)
+  t= 9 N= 2200 comps= 18 pockets=5710 sizes[0.32/0.10/0.09/0.08] kept=0.508 menu=  64 rank=0 next=(32, 2198)
+  t=10 N= 2200 comps= 23 pockets=5785 sizes[0.15/0.09/0.09/0.07] kept=0.548 menu=  64 rank=0 next=(29, 2319)
+  t=11 N= 2200 comps= 25 pockets=5838 sizes[0.10/0.08/0.07/0.07] kept=0.508 menu=  64 rank=0 next=(34, 2219)
+  t=12 N= 2200 comps= 28 pockets=5799 sizes[0.08/0.06/0.05/0.05] kept=0.468 menu=  32 rank=0 next=(30, 1977)
+  t=13 N= 2200 comps= 28 pockets=5774 sizes[0.06/0.06/0.05/0.05] kept=0.473 menu=   1 rank=0 next=(30, 2077)
+  t=14 N= 2200 comps= 28 pockets=5831 sizes[0.07/0.06/0.05/0.05] kept=0.537 menu=   1 rank=0 next=(24, 2126)
+=== d=6 seed=2 ADVERSARY (T=14) ===
+  t= 1 N= 2200 comps=  1 pockets=   0 sizes[1.00] kept=0.493 menu=  64 rank=0 next=(1, 250)
+  t= 2 N= 2200 comps=  1 pockets= 374 sizes[1.00] kept=0.506 menu=  64 rank=0 next=(1, 883)
+  t= 3 N= 2200 comps=  1 pockets=1740 sizes[1.00] kept=0.445 menu=  64 rank=0 next=(1, 1700)
+  t= 4 N= 2200 comps=  1 pockets=4131 sizes[1.00/0.00/0.00/0.00] kept=0.531 menu=  64 rank=0 next=(4, 1832)
+  t= 5 N= 2200 comps=  1 pockets=4408 sizes[0.99/0.00/0.00/0.00] kept=0.510 menu=  64 rank=0 next=(11, 1605)
+  t= 6 N= 2200 comps=  2 pockets=3889 sizes[0.95/0.01/0.00/0.00] kept=0.510 menu=  64 rank=0 next=(7, 1594)
+  t= 7 N= 2200 comps=  1 pockets=3956 sizes[0.97/0.00/0.00/0.00] kept=0.485 menu=  64 rank=0 next=(14, 1780)
+  t= 8 N= 2200 comps=  1 pockets=4284 sizes[0.97/0.00/0.00/0.00] kept=0.475 menu=  64 rank=0 next=(12, 1380)
+  t= 9 N= 2200 comps=  6 pockets=3669 sizes[0.88/0.02/0.01/0.01] kept=0.489 menu=  64 rank=0 next=(24, 1759)
+  t=10 N= 2200 comps=  4 pockets=4511 sizes[0.91/0.03/0.01/0.01] kept=0.524 menu=  64 rank=0 next=(22, 1909)
+  t=11 N= 2200 comps=  3 pockets=5015 sizes[0.76/0.14/0.01/0.00] kept=0.522 menu=  64 rank=0 next=(23, 1873)
+  t=12 N= 2200 comps= 10 pockets=4992 sizes[0.28/0.16/0.15/0.15] kept=0.503 menu=  64 rank=0 next=(27, 2008)
+  t=13 N= 2200 comps=  7 pockets=4625 sizes[0.38/0.34/0.15/0.04] kept=0.485 menu=  64 rank=0 next=(18, 1825)
+  t=14 N= 2200 comps=  8 pockets=4749 sizes[0.54/0.18/0.12/0.03] kept=0.540 menu=  64 rank=0 next=(23, 1824)

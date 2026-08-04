@@ -1,0 +1,22 @@
+=== d=5 seed=1 ===
+  ADVERSARY: t= 6 N=2400 cells=  72 top1=0.085 top(d*t)=0.978 curve(N/8,N/4,N/2,N)=[30, 37, 54, 72]
+  ADVERSARY: t= 9 N=2400 cells=  85 top1=0.084 top(d*t)=0.983 curve(N/8,N/4,N/2,N)=[29, 35, 55, 85]
+  ADVERSARY: t=12 N=2400 cells=  80 top1=0.080 top(d*t)=0.992 curve(N/8,N/4,N/2,N)=[34, 44, 56, 80]
+  toward   : t= 6 N=2400 cells= 220 top1=0.071 top(d*t)=0.626 curve(N/8,N/4,N/2,N)=[95, 136, 178, 220]
+  toward   : t= 9 N=2400 cells= 370 top1=0.052 top(d*t)=0.637 curve(N/8,N/4,N/2,N)=[136, 190, 277, 370]
+  toward   : t=12 N=2400 cells= 503 top1=0.061 top(d*t)=0.657 curve(N/8,N/4,N/2,N)=[139, 230, 343, 503]
+  random-SSG: t= 6 N=2400 cells=  66 top1=0.123 top(d*t)=0.965 curve(N/8,N/4,N/2,N)=[35, 44, 56, 66]
+  random-SSG: t= 9 N=2400 cells= 163 top1=0.109 top(d*t)=0.884 curve(N/8,N/4,N/2,N)=[75, 103, 121, 163]
+  random-SSG: t=12 N=2400 cells= 288 top1=0.125 top(d*t)=0.800 curve(N/8,N/4,N/2,N)=[108, 157, 212, 288]
+
+=== d=6 seed=1 ===
+  ADVERSARY: t= 7 N=2400 cells=  84 top1=0.058 top(d*t)=0.983 curve(N/8,N/4,N/2,N)=[38, 44, 60, 84]
+  ADVERSARY: t=10 N=2400 cells=  96 top1=0.059 top(d*t)=0.985 curve(N/8,N/4,N/2,N)=[41, 51, 64, 96]
+  ADVERSARY: t=14 N=2400 cells=  87 top1=0.072 top(d*t)=0.999 curve(N/8,N/4,N/2,N)=[38, 43, 58, 87]
+  toward   : t= 7 N=2400 cells= 364 top1=0.057 top(d*t)=0.607 curve(N/8,N/4,N/2,N)=[148, 206, 279, 364]
+  toward   : t=10 N=2400 cells= 552 top1=0.090 top(d*t)=0.579 curve(N/8,N/4,N/2,N)=[156, 243, 372, 552]
+  toward   : t=14 N=2400 cells= 677 top1=0.037 top(d*t)=0.635 curve(N/8,N/4,N/2,N)=[171, 287, 442, 677]
+  random-SSG: t= 7 N=2400 cells= 182 top1=0.110 top(d*t)=0.843 curve(N/8,N/4,N/2,N)=[82, 111, 145, 182]
+  random-SSG: t=10 N=2400 cells= 330 top1=0.092 top(d*t)=0.755 curve(N/8,N/4,N/2,N)=[105, 176, 248, 330]
+  random-SSG: t=14 N=2400 cells= 507 top1=0.115 top(d*t)=0.713 curve(N/8,N/4,N/2,N)=[152, 230, 356, 507]
+

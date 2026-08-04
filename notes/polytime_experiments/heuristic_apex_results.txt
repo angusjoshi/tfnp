@@ -1,0 +1,18 @@
+=== ssg  d=5: minority count (worst-case removal) per apex ===
+  t    samp    cheb    unif    hist    prev
+  3   0.477   0.156   0.166   0.000   0.000
+  6   0.451   0.056   0.054   0.000   0.000
+  9   0.452   0.247   0.143   0.000   0.000
+ 12   0.464   0.009   0.083   0.000   0.000
+=== ssg  d=6: minority count (worst-case removal) per apex ===
+  t    samp    cheb    unif    hist    prev
+  3   0.452   0.114   0.166   0.104   0.000
+  6   0.456   0.121   0.153   0.003   0.000
+  9   0.459   0.105   0.226   0.000   0.000
+ 12   0.470   0.032   0.233   0.000   0.000
+=== adv  d=6: minority count (worst-case removal) per apex ===
+  t    samp    cheb    unif    hist    prev
+  3   0.477   0.448   0.448   0.002   0.000
+  6   0.468   0.466   0.466   0.009   0.000
+  9   0.416   0.237   0.458   0.059   0.000
+ 12   0.441   0.231   0.470   0.015   0.000

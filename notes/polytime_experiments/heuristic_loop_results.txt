@@ -1,0 +1,46 @@
+=== ssg  d=5: minority count (worst-case removal) per apex ===
+  t    samp    cheb    unif    hist    prev
+  3   0.477   0.156   0.166   0.000   0.000
+  6   0.451   0.056   0.054   0.000   0.000
+  9   0.452   0.247   0.143   0.000   0.000
+ 12   0.464   0.009   0.083   0.000   0.000
+=== ssg  d=6: minority count (worst-case removal) per apex ===
+  t    samp    cheb    unif    hist    prev
+  3   0.452   0.114   0.166   0.104   0.000
+  6   0.456   0.121   0.153   0.003   0.000
+  9   0.459   0.105   0.226   0.000   0.000
+ 12   0.470   0.032   0.233   0.000   0.000
+=== adv  d=6: minority count (worst-case removal) per apex ===
+  t    samp    cheb    unif    hist    prev
+  3   0.477   0.448   0.448   0.002   0.000
+  6   0.468   0.466   0.466   0.009   0.000
+  9   0.416   0.237   0.458   0.059   0.000
+ 12   0.441   0.231   0.470   0.015   0.000
+=== closed-loop unif-cell apex, d=5 ssg seed=1 ===
+  t= 1 minority=0.475 kept=0.512 |c-x*|=0.5000
+  t= 2 minority=0.177 kept=0.443 |c-x*|=0.6458
+  t= 3 minority=0.431 kept=0.554 |c-x*|=0.6457
+  t= 4 minority=0.403 kept=0.519 |c-x*|=0.6213
+  t= 5 minority=0.256 kept=0.745 |c-x*|=0.5847
+  t= 6 minority=0.198 kept=0.802 |c-x*|=0.5725
+  t= 7 minority=0.195 kept=0.805 |c-x*|=0.5633
+  t= 8 minority=0.160 kept=0.743 |c-x*|=0.5541
+  t= 9 minority=0.133 kept=0.868 |c-x*|=0.5557
+  t=10 minority=0.054 kept=0.946 |c-x*|=0.5526
+  t=11 minority=0.051 kept=0.949 |c-x*|=0.5496
+  t=12 minority=0.054 kept=0.946 |c-x*|=0.5471
+  t=13 minority=0.048 kept=0.953 |c-x*|=0.5440
+=== closed-loop unif-cell apex, d=6 ssg seed=1 ===
+  t= 1 minority=0.487 kept=0.501 |c-x*|=0.5000
+  t= 2 minority=0.141 kept=0.630 |c-x*|=0.6462
+  t= 3 minority=0.213 kept=0.462 |c-x*|=0.5730
+  t= 4 minority=0.227 kept=0.652 |c-x*|=0.5120
+  t= 5 minority=0.211 kept=0.784 |c-x*|=0.4981
+  t= 6 minority=0.191 kept=0.737 |c-x*|=0.4846
+  t= 7 minority=0.120 kept=0.678 |c-x*|=0.4778
+  t= 8 minority=0.061 kept=0.939 |c-x*|=0.4703
+  t= 9 minority=0.052 kept=0.923 |c-x*|=0.4647
+  t=10 minority=0.053 kept=0.947 |c-x*|=0.4611
+  t=11 minority=0.048 kept=0.951 |c-x*|=0.4584
+  t=12 minority=0.027 kept=0.971 |c-x*|=0.4569
+  t=13 minority=0.024 kept=0.958 |c-x*|=0.4551

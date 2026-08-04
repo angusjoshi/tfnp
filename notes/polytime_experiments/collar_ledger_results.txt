@@ -1,0 +1,76 @@
+=== ssg      d=6: collar ledger ===
+  t  #mc birth death emerg tieIn colIn front b@front b@tied3 b@rob
+  2   29     0     0    29     0     0    29       0       0     0
+  3   35    13     8     1    11     0    35      13       2     0
+  4   44    16    12     5     0     0    44      29      18     0
+  5   60    30    16     2     1     0    60      59      44     0
+  6   66    12    11     5     4     0    66      71      53     0
+  7   72    28    27     5     0     0    72      99      80     0
+  8   75    24    31    10     6     0    75     123      88     0
+  9   80    19    26    12     8     0    80     142     104     0
+ 10   82    31    42    13     5     0    82     173     135     0
+ 11   98    28    33    21     0     0    97     201     163     0
+ 12  111    15    34    32     6     0   111     216     174     0
+ 13  102    26    53    18     4     2   102     242     190     1
+  SUMMARY ssg      d=6: L=395 births=242 tieIn=45 collarIn=2 maxBirths/lin=27 maxTieIn/lin=4 lin's with >=2 tieIn: 3
+  birth states: gap2-front=242 off-front=0 | gap3: tied=190 collar=51 robust=1
+  emergence mass (n=124, THRESH=0.002): med=0.0024 p90=0.0038 p99=0.0051 max=0.0070 <2xTHRESH=0.94
+  emergence age (rounds untracked): med=2.0 age1=0 age2=70 age>=3=54 dist={2: 70, 3: 33, 4: 14, 5: 4, 6: 3}
+  Doob check (unnormalized): emergedVol(in-window)=2.531e-04 orphanVol=3.667e-06 outflowVol=2.785e-04 ratio=0.909 (annealed prediction: <= 1)
+=== adversary d=6: collar ledger ===
+  t  #mc birth death emerg tieIn colIn front b@front b@tied3 b@rob
+  2   30     0     0    30     0     0    30       0       0     0
+  3   30     0     0     0     0     0    30       0       0     0
+  4   30     0     0     0     0     0    30       0       0     0
+  5   30     0     0     0     0     0    29       0       0     0
+  6   30     0     0     0     0     0    30       0       0     0
+  7   30     0     0     0     0     0    30       0       0     0
+  8   30     0     0     0     0     0    30       0       0     0
+  9   30     0     0     0     0     0    30       0       0     0
+ 10   31     0     0     1     0     0    28       0       0     0
+ 11   30     0     1     0     0     0    30       0       0     0
+ 12   30     0     0     0     0     0    30       0       0     0
+ 13   30     0     0     0     0     0    30       0       0     0
+  SUMMARY adversary d=6: L=31 births=0 tieIn=0 collarIn=0 maxBirths/lin=0 maxTieIn/lin=0 lin's with >=2 tieIn: 0
+  birth states: gap2-front=0 off-front=0 | gap3: tied=0 collar=0 robust=0
+  emergence mass (n=1, THRESH=0.002): med=0.0022 p90=0.0022 p99=0.0022 max=0.0022 <2xTHRESH=1.00
+  emergence age (rounds untracked): med=8.0 age1=0 age2=0 age>=3=1 dist={8: 1}
+  Doob check (unnormalized): emergedVol(in-window)=1.833e-06 orphanVol=0.000e+00 outflowVol=1.124e-04 ratio=0.016 (annealed prediction: <= 1)
+=== cellmax   d=6: collar ledger ===
+  t  #mc birth death emerg tieIn colIn front b@front b@tied3 b@rob
+  2   30     0     0    30     0     0    30       0       0     0
+  3   31     9     8     0     3     0    31       9       3     0
+  4   82    43     1     9     6     0    79      52       6     0
+  5   84    16    33    19    13     0    84      68      17     0
+  6   81     9    30    18     5     0    81      77      21     0
+  7   88     9    28    26    22     5    88      86      26     3
+  8   97    13    30    26     0     0    97      99      39     3
+  9   90     7    35    21     0     0    89     106      46     3
+ 10  103     9    19    23     6     0   101     115      54     3
+ 11   96    12    45    26    14     1    96     127      64     3
+ 12   98    10    37    29     5     1    98     137      73     4
+ 13   90     9    32    15     1     0    87     146      82     4
+  SUMMARY cellmax   d=6: L=388 births=146 tieIn=75 collarIn=7 maxBirths/lin=8 maxTieIn/lin=2 lin's with >=2 tieIn: 9
+  birth states: gap2-front=146 off-front=0 | gap3: tied=82 collar=60 robust=4
+  emergence mass (n=212, THRESH=0.002): med=0.0024 p90=0.0038 p99=0.0050 max=0.0064 <2xTHRESH=0.92
+  emergence age (rounds untracked): med=3.0 age1=0 age2=69 age>=3=143 dist={2: 69, 3: 47, 4: 23, 5: 29, 6: 22, 7: 7, 8: 10, 9: 3, 10: 1, 11: 1}
+  Doob check (unnormalized): emergedVol(in-window)=6.583e-04 orphanVol=0.000e+00 outflowVol=2.632e-04 ratio=2.501 (annealed prediction: <= 1)
+=== randbal   d=6: collar ledger ===
+  t  #mc birth death emerg tieIn colIn front b@front b@tied3 b@rob
+  2   14     0     0    14     0     0    14       0       0     0
+  3   37    23     0     0     4     0    37      23      16     0
+  4   71    40     6     0     0     0    71      63      56     0
+  5   67    13    23     6    17     0    66      76      62     0
+  6   83    36    26     6     0     0    82     112      98     0
+  7  102    35    29    13     2     0   102     146     130     0
+  8  111    41    38     6     0     0   106     187     169     0
+  9  102    18    50    23     3     0    92     205     184     0
+ 10   95    16    41    18    11     3    94     221     190     2
+ 11   87    13    43    22    10     0    87     234     203     2
+ 12  106    36    31    14     1     0   106     270     239     2
+ 13  100     9    43    28     3     0    96     279     246     2
+  SUMMARY randbal   d=6: L=430 births=280 tieIn=51 collarIn=3 maxBirths/lin=20 maxTieIn/lin=2 lin's with >=2 tieIn: 2
+  birth states: gap2-front=279 off-front=1 | gap3: tied=246 collar=32 robust=2
+  emergence mass (n=136, THRESH=0.002): med=0.0026 p90=0.0036 p99=0.0064 max=0.0082 <2xTHRESH=0.91
+  emergence age (rounds untracked): med=3.0 age1=0 age2=67 age>=3=69 dist={2: 67, 3: 30, 4: 23, 5: 10, 6: 3, 7: 2, 10: 1}
+  Doob check (unnormalized): emergedVol(in-window)=2.905e-04 orphanVol=0.000e+00 outflowVol=2.737e-04 ratio=1.061 (annealed prediction: <= 1)

@@ -1,0 +1,8 @@
+=== ssg  d=8 ===
+  t= 5 disp=0.089 cones=2199 H(cone)=7.70 effcones=2199 cells=138 H(cell|cone)=0.00
+  t= 8 disp=0.104 cones=2198 H(cone)=7.69 effcones=2197 cells=349 H(cell|cone)=0.00
+  t=10 disp=0.113 cones=2188 H(cone)=7.69 effcones=2183 cells=343 H(cell|cone)=0.01
+=== adv  d=8 ===
+  t= 5 disp=0.042 cones=2195 H(cone)=7.69 effcones=2193 cells=116 H(cell|cone)=0.00
+  t= 8 disp=0.042 cones=2198 H(cone)=7.69 effcones=2197 cells=301 H(cell|cone)=0.00
+  t=10 disp=0.040 cones=2195 H(cone)=7.69 effcones=2193 cells=293 H(cell|cone)=0.00

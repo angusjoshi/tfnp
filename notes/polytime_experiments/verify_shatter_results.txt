@@ -1,0 +1,14 @@
+=== replaying d=5 seed=1 adversary ===
+  dense recount at t=6  (game-N=2200/knn=8 above)
+    N=9000 comps=1 sizes[1.000] pockets=30256
+  dense recount at t=9  (game-N=2200/knn=8 above)
+    N=9000 comps=4 sizes[0.937/0.037/0.013/0.012/0.000/0.000] pockets=30758
+  dense recount at t=12  (game-N=2200/knn=8 above)
+    N=9000 comps=17 sizes[0.111/0.105/0.096/0.086/0.072/0.069] pockets=31996
+=== replaying d=6 seed=1 adversary ===
+  dense recount at t=8  (game-N=2200/knn=8 above)
+    N=9000 comps=4 sizes[0.956/0.026/0.008/0.007/0.000/0.000] pockets=46718
+  dense recount at t=11  (game-N=2200/knn=8 above)
+    N=9000 comps=16 sizes[0.208/0.169/0.135/0.096/0.090/0.047] pockets=47667
+  dense recount at t=14  (game-N=2200/knn=8 above)
+    N=9000 comps=23 sizes[0.140/0.091/0.069/0.068/0.066/0.064] pockets=42486

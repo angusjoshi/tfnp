@@ -1,0 +1,16 @@
+=== CELLMAX d=5 seed=1 T=12 ===
+  CELLMAX d=5s1: t= 6 N=2400 cells= 167 top1=0.162 top(d*t)=0.755 curve(N/8,N/4,N/2,N)=[73, 105, 134, 167]
+  CELLMAX d=5s1: t= 9 N=2400 cells= 350 top1=0.054 top(d*t)=0.658 curve(N/8,N/4,N/2,N)=[129, 187, 252, 350]
+  CELLMAX d=5s1: t=12 N=2400 cells= 468 top1=0.072 top(d*t)=0.637 curve(N/8,N/4,N/2,N)=[143, 231, 339, 468]
+=== CELLMAX d=5 seed=2 T=12 ===
+  CELLMAX d=5s2: t= 6 N=2400 cells= 157 top1=0.088 top(d*t)=0.733 curve(N/8,N/4,N/2,N)=[73, 96, 126, 157]
+  CELLMAX d=5s2: t= 9 N=2400 cells= 292 top1=0.044 top(d*t)=0.725 curve(N/8,N/4,N/2,N)=[107, 154, 221, 292]
+  CELLMAX d=5s2: t=12 N=2400 cells= 383 top1=0.076 top(d*t)=0.736 curve(N/8,N/4,N/2,N)=[130, 196, 271, 383]
+=== CELLMAX d=6 seed=1 T=14 ===
+  CELLMAX d=6s1: t= 7 N=2400 cells= 275 top1=0.139 top(d*t)=0.732 curve(N/8,N/4,N/2,N)=[105, 148, 204, 275]
+  CELLMAX d=6s1: t=10 N=2400 cells= 462 top1=0.033 top(d*t)=0.624 curve(N/8,N/4,N/2,N)=[159, 225, 318, 462]
+  CELLMAX d=6s1: t=14 N=2400 cells= 663 top1=0.028 top(d*t)=0.590 curve(N/8,N/4,N/2,N)=[178, 282, 434, 663]
+=== CELLMAX d=6 seed=2 T=14 ===
+  CELLMAX d=6s2: t= 7 N=2400 cells= 342 top1=0.135 top(d*t)=0.656 curve(N/8,N/4,N/2,N)=[125, 175, 249, 342]
+  CELLMAX d=6s2: t=10 N=2400 cells= 475 top1=0.038 top(d*t)=0.645 curve(N/8,N/4,N/2,N)=[138, 210, 321, 475]
+  CELLMAX d=6s2: t=14 N=2400 cells= 750 top1=0.065 top(d*t)=0.587 curve(N/8,N/4,N/2,N)=[178, 293, 480, 750]

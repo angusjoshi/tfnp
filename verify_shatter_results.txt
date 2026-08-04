@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/Users/angusjoshi/projects/tfnp/verify_shatter.py", line 6, in <module>
+    import adversary_game as G
+ModuleNotFoundError: No module named 'adversary_game'

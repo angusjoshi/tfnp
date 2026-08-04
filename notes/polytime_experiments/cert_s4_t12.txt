@@ -1,0 +1,16 @@
+replaying d=3 seed=4 T=12 ...
+realizability (exact, lam = 1-1e-9): OK
+t=1: cells=3 kept=0.5022 worst pyramid-pair share=0.4126
+t=2: cells=7 kept=0.4692 worst pyramid-pair share=0.4399
+t=3: cells=12 kept=0.4648 worst pyramid-pair share=0.4525
+t=4: cells=18 kept=0.5057 worst pyramid-pair share=0.4644
+t=5: cells=25 kept=0.5008 worst pyramid-pair share=0.4402
+t=6: cells=33 kept=0.4636 worst pyramid-pair share=0.4157
+t=7: cells=46 kept=0.5261 worst pyramid-pair share=0.4457
+t=8: cells=60 kept=0.4669 worst pyramid-pair share=0.4503
+t=9: cells=75 kept=0.4938 worst pyramid-pair share=0.4687
+t=10: cells=91 kept=0.4758 worst pyramid-pair share=0.4387
+t=11: cells=108 kept=0.4777 worst pyramid-pair share=0.4515
+t=12: cells=127 kept=0.5092 worst pyramid-pair share=0.4691
+searching for a certified separating slab ...
+no single-slab separation among canonical directions (disconnection may need a piecewise certificate)

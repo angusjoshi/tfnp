@@ -134,7 +134,7 @@ cuts. The routes and how each dies:
 
 | Route | Mechanism | Outcome |
 |---|---|---|
-| Cheeger `h ≥ 1/poly` | hit-and-run mixing | Open Lemma = SSG-hard; unrestricted version false (slivers, non-realizable) |
+| Cheeger `h ≥ 1/poly` | hit-and-run mixing | **REFUTED REALIZABLY** (post-consolidation, cycle 11): a certified-realizable adversary drives `X_t` to 17–23 mass-comparable components (`h = 0`) at d=5,6 within 2.5d rounds — `notes/adversarial_components.md`. Earlier status "Open Lemma = SSG-hard; unrestricted version false but non-realizable" is superseded |
 | Conditioning `κ ≤ poly` | whiten + hit-and-run | `μ_W≤1` kills κ-blowup but is **necessary-not-sufficient** (poly-κ⟹mixing smuggles convexity; ball-minus-central-slab has κ≈1, Cheeger→0) |
 | mean-reversion of `κ` | blind long axis is transient | **empirically false**: persistent blind axis realized (κ 3→15.6 over 5 rounds) |
 | well-roundedness `vol(X_t)≤poly·vol(B)` | fill central valleys | **insufficient**: far-corridor dumbbell (vol-ratio O(1), Cheeger→0) |

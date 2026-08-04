@@ -9,6 +9,14 @@ import Tfnp.Shrinking
 import Tfnp.Contraction
 import Tfnp.Algorithm
 import Tfnp.HitRun
+import Tfnp.Progress
+import Tfnp.Realizability
+import Tfnp.Fan
+import Tfnp.Margin
+import Tfnp.Walk
+import Tfnp.Shed
+import Tfnp.Restrat
+import Tfnp.Annealed
 import Tfnp.PolyTime
 import Tfnp.PPAD
 import Tfnp.BlackBox

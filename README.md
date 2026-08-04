@@ -2,6 +2,12 @@
 
 Lean 4 formalization of query-complexity results for total-function NP problems.
 
+> **Campaign state (SSG ∈ P programme): start at `notes/HANDOFF.md`** — the
+> consolidated inventory of all machine-checked theorems, measured laws,
+> negative results, instruments, and the precise open core, with
+> recommended next steps. Reduction chain: `notes/CHAIN.md`. Chronology:
+> `notes/RESEARCH_LOG.md`.
+
 ## Status
 
 Contains a complete formalization of the main theorem of
@@ -110,6 +116,71 @@ the thickening/volume machinery is gone, and the parity rounding is unnecessary
 argument above gives the counting balance directly. With the rounding step gone
 the candidate set needs no parity condition either, so CLY's even-integer set is
 replaced by the full integer `grid`. See `notes/polytime.md`.
+
+### The progress–convexity trade-off (`Tfnp/Progress.lean`)
+
+Why a first-order method cannot be run on a convex relaxation of the cut. The
+Fermat–Weber objective *is* convex in `c`; the obstruction is the cut geometry,
+and it is a sharp threshold in the number of **live** coordinates `L(c)` (those
+attaining the `ℓ∞`-argmax somewhere on the candidate body):
+
+* `card_removed_le_sum_min` — worst-case removal at `c` is the *minority count*
+  `∑ᵢ min(nᵢ⁺,nᵢ⁻)`, hence `≤ N/2` with equality **iff `c` is balanced**;
+* `exists_sign_vacuous_cut`, `apex_between_of_two_sided` — progress needs a
+  two-sided coordinate, and a two-sided coordinate traps the apex inside the
+  body, so a "far" (convexity-friendly) apex has zero guaranteed progress;
+* `cut_inter_subset_halfspace` — `L(c) ≤ 2` ⟹ the cut is a **halfspace** on the
+  body ⟹ the round is convex and poly-time (generalising the `d ≤ 2` case);
+* `exists_three_pyramid_centroid` — every point of `ℝ^d` is the centroid of
+  three points, one in each of *any* three distinct-index pyramids at `c`. Hence
+  `le_of_quasiconcave_majorant`: any quasiconcave (in particular log-concave)
+  `h ≥ 1_K` is `≥ 1` **everywhere** — there is no convex surrogate at all — and
+  `exists_injective_of_convex_cover`: the convex cover number of a cut is
+  exactly `d`.
+
+Experiments (`notes/polytime_experiments/live_progress_pareto.py`) show the
+trade-off is a cliff: over ~3000 apexes per round on realizable `X_t`, `L ≤ 2`
+gives progress `≤ 0.011` while the balanced apex gives `≈ 0.45` at `L = d`.
+Details and the resulting open question: `notes/progress_convexity.md`.
+
+### Realizability and the adversarial game (`Tfnp/Realizability.lean`)
+
+`ℓ∞` is hyperconvex, so a partial λ-contraction on a finite query set extends
+to a total one (coordinatewise McShane formula):
+
+* `realizable_of_pairwise` — query/response data `(cʳ, wʳ)` with responses in
+  the cube is realized by an actual `IsLInfContraction` **iff** the finite
+  pairwise conditions `‖wʳ − w^q‖∞ ≤ λ‖cʳ − c^q‖∞` hold;
+* `realizable_cuts_retain_fixedPoint` — every pairwise-consistent history's
+  apex cuts retain a common fixed point.
+
+So "realizable trajectory" is a finite inequality system that decouples per
+coordinate. Playing the resulting adversarial game against the balanced-cut
+algorithm (`notes/polytime_experiments/adversary_game.py`) produces the
+project's sharpest negative result: a **certified-realizable adversary shatters
+the candidate body** into ~28 components with near-equal masses (d = 6,
+t ≤ 14) while the algorithm receives its full volume-halving — refuting the
+isoperimetry Open Lemma (`h(X_t) ≥ 1/poly` on realizable trajectories) and
+exposing the earlier "realizable bodies are benign" empirics as a
+random-instance artifact. The machine-checked counterpoint
+(`cut_inter_convex_isPreconnected`, via `convex_pyramid` and
+`apex_mem_pyramid`): a convex lobe containing the apex cannot be split, so the
+cascade must first expel the apex from the mass. Details:
+`notes/adversarial_components.md`.
+
+### The cell-tree sampler: the candidate algorithm, executable
+
+`convex_cell` (cells of a cut trajectory — one pyramid index per cut — are
+convex polytopes with `O(dt)` facets) underpins the implemented candidate
+algorithm (`notes/polytime_experiments/telescope_algo.py`): telescoping
+samples down the exact cell *tree*, LP-reviving point-less children so no
+cell is ever silently lost, with a weighted Fermat–Weber apex. Every step is
+`poly(d, t, #cells, N)`; the entire open problem is compressed into the
+declared leak at a polynomial cell cap — conjecture (★) made executable.
+First measurements past the exact-rejection ceiling (d = 6, T = 40,
+`λ = 1−10⁻⁴` SSG): error halves every ~11 rounds down to `|c−x*| = 0.035`,
+with ≤ 4000 cells holding ~87% of the mass throughout. Details and honest
+caveats: `notes/cell_sampler.md`.
 
 ## PPAD
 

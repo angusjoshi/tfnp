@@ -1,0 +1,66 @@
+--- d=6 T=40 mode=adversary seed=1 N=3000 CAP=12000 ---
+  t= 1 kept=0.546 cells=    6 wmax=0.178 capleak=0.000
+  t= 2 kept=0.515 cells=   31 wmax=0.043 capleak=0.000 exleak=0.000 cellTV=0.077
+  t= 3 kept=0.466 cells=   77 wmax=0.046 capleak=0.000
+  t= 4 kept=0.564 cells=  233 wmax=0.063 capleak=0.000 exleak=0.000 cellTV=0.141
+  t= 5 kept=0.470 cells=  716 wmax=0.085 capleak=0.000 comps=3[0.96/0.01/0.01]
+  t= 6 kept=0.481 cells= 1148 wmax=0.146 capleak=0.000 exleak=0.001 cellTV=0.245
+  t= 7 kept=0.479 cells= 2829 wmax=0.061 capleak=0.000
+  t= 8 kept=0.508 cells= 3971 wmax=0.036 capleak=0.001 exleak=0.004 cellTV=0.498
+  t= 9 kept=0.482 cells= 5795 wmax=0.027 capleak=0.001
+  t=10 kept=0.551 cells= 9013 wmax=0.016 capleak=0.002 exleak=0.021 cellTV=0.632 comps=17[0.62/0.05/0.03]
+  t=11 kept=0.574 cells= 9031 wmax=0.020 capleak=0.004
+  t=12 kept=0.490 cells=10221 wmax=0.031 capleak=0.007 exleak=0.032 cellTV=0.632
+  t=13 kept=0.556 cells=10428 wmax=0.032 capleak=0.008
+  t=14 kept=0.534 cells= 9260 wmax=0.049 capleak=0.010
+  t=15 kept=0.501 cells= 9294 wmax=0.049 capleak=0.011 comps=20[0.57/0.05/0.05]
+  t=16 kept=0.515 cells= 9145 wmax=0.064 capleak=0.013
+  t=17 kept=0.501 cells= 7649 wmax=0.062 capleak=0.014
+  t=18 kept=0.524 cells= 9567 wmax=0.086 capleak=0.016
+  t=19 kept=0.494 cells=11099 wmax=0.042 capleak=0.017
+  t=20 kept=0.503 cells=10164 wmax=0.029 capleak=0.018 comps=23[0.36/0.23/0.03]
+  t=21 kept=0.531 cells= 9194 wmax=0.031 capleak=0.019
+  t=22 kept=0.512 cells= 7434 wmax=0.043 capleak=0.020
+  t=23 kept=0.482 cells= 8068 wmax=0.029 capleak=0.022
+  t=24 kept=0.523 cells=12000 wmax=0.008 capleak=0.025
+  t=25 kept=0.484 cells= 8789 wmax=0.012 capleak=0.026 comps=31[0.47/0.06/0.03]
+  t=26 kept=0.521 cells=11475 wmax=0.007 capleak=0.027
+  t=27 kept=0.518 cells=12000 wmax=0.010 capleak=0.033
+  t=28 kept=0.536 cells=12000 wmax=0.009 capleak=0.041
+  t=29 kept=0.509 cells=12000 wmax=0.004 capleak=0.042
+  t=30 kept=0.502 cells=12000 wmax=0.005 capleak=0.045 comps=35[0.20/0.10/0.09]
+  t=31 kept=0.510 cells=12000 wmax=0.006 capleak=0.048
+  t=32 kept=0.534 cells= 7106 wmax=0.011 capleak=0.048
+  t=33 kept=0.530 cells= 7675 wmax=0.016 capleak=0.048
+  t=34 kept=0.508 cells= 7707 wmax=0.009 capleak=0.049
+  t=35 kept=0.478 cells= 6801 wmax=0.011 capleak=0.050 comps=52[0.12/0.06/0.05]
+  t=36 kept=0.526 cells= 4855 wmax=0.019 capleak=0.051
+  t=37 kept=0.472 cells= 5055 wmax=0.012 capleak=0.051
+  t=38 kept=0.480 cells= 3890 wmax=0.015 capleak=0.051
+  t=39 kept=0.470 cells= 3013 wmax=0.019 capleak=0.051
+  t=40 kept=0.480 cells= 3778 wmax=0.018 capleak=0.051 comps=35[0.29/0.12/0.04]
+--- d=8 T=24 mode=ssg seed=1 N=3000 CAP=12000 ---
+  t= 1 kept=0.510 cells=    8 wmax=0.151 capleak=0.000 |c-x*|=0.5022
+  t= 2 kept=0.459 cells=   39 wmax=0.139 capleak=0.000 |c-x*|=0.4514 exleak=0.000 cellTV=0.063
+  t= 3 kept=0.526 cells=  118 wmax=0.147 capleak=0.000 |c-x*|=0.4188
+  t= 4 kept=0.492 cells=  442 wmax=0.122 capleak=0.000 |c-x*|=0.3818 exleak=0.000 cellTV=0.122
+  t= 5 kept=0.523 cells=  987 wmax=0.117 capleak=0.000 |c-x*|=0.3643 comps=1[1.00/0.00]
+  t= 6 kept=0.520 cells= 2474 wmax=0.112 capleak=0.001 |c-x*|=0.3355 exleak=0.002 cellTV=0.291
+  t= 7 kept=0.524 cells= 4152 wmax=0.111 capleak=0.002 |c-x*|=0.3078
+  t= 8 kept=0.513 cells= 3812 wmax=0.113 capleak=0.004 |c-x*|=0.2862 exleak=0.022 cellTV=0.297
+  t= 9 kept=0.507 cells= 4180 wmax=0.093 capleak=0.008 |c-x*|=0.2687
+  t=10 kept=0.528 cells= 2935 wmax=0.111 capleak=0.011 |c-x*|=0.2479 comps=1[0.99/0.00/0.00]
+  t=11 kept=0.579 cells= 4376 wmax=0.102 capleak=0.013 |c-x*|=0.2343
+  t=12 kept=0.555 cells= 3740 wmax=0.133 capleak=0.016 |c-x*|=0.2203
+  t=13 kept=0.548 cells= 5470 wmax=0.089 capleak=0.018 |c-x*|=0.2075
+  t=14 kept=0.550 cells= 4329 wmax=0.087 capleak=0.021 |c-x*|=0.1988
+  t=15 kept=0.483 cells= 4463 wmax=0.063 capleak=0.024 |c-x*|=0.1867 comps=4[0.90/0.06/0.01]
+  t=16 kept=0.482 cells= 4677 wmax=0.088 capleak=0.026 |c-x*|=0.1649
+  t=17 kept=0.510 cells= 4320 wmax=0.090 capleak=0.029 |c-x*|=0.1626
+  t=18 kept=0.476 cells= 7823 wmax=0.059 capleak=0.033 |c-x*|=0.1425
+  t=19 kept=0.496 cells= 8325 wmax=0.071 capleak=0.036 |c-x*|=0.1346
+  t=20 kept=0.473 cells= 5444 wmax=0.092 capleak=0.039 |c-x*|=0.1295 comps=6[0.84/0.11/0.01]
+  t=21 kept=0.547 cells= 6160 wmax=0.099 capleak=0.042 |c-x*|=0.1220
+  t=22 kept=0.485 cells= 2419 wmax=0.108 capleak=0.044 |c-x*|=0.1133
+  t=23 kept=0.463 cells= 2375 wmax=0.113 capleak=0.046 |c-x*|=0.1039
+  t=24 kept=0.501 cells= 3608 wmax=0.099 capleak=0.048 |c-x*|=0.0929 comps=13[0.74/0.07/0.02]
