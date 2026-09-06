@@ -232,6 +232,44 @@ theorem exists_meet_progress (hd : 3 ≤ d)
     obtain ⟨t, ht, hbad⟩ := hmono
     exact Or.inr ⟨t, ht, infPt_le hTne u ht, hbad⟩
 
+/-- **Progress from a crossing-free family, in every dimension.**  A far weaker
+invariant than `exists_meet_progress`: no singleton-sign condition on the witnesses and
+no level bound.  All that is asked is that the family be *crossing-free* — whenever a
+member's `l`-coordinate is at most the `l`-th pin `p⁽ˡ⁾_l`, that member is strictly
+down at `l`.
+
+The point is a duality: a point failing to pin `l` from below is strictly up at `l`,
+hence pins `l` from *above*, so it is numerically excluded as soon as the low and high
+pins have not crossed.  Balanced sign patterns are therefore usable after all; what
+obstructs progress is a *crossing*, not a sign pattern.
+
+Note also that the family need not lie on the levelset: since `z ≤ p⁽ᵗ⁾` for every `t`,
+`lev z ≤ minₜ lev p⁽ᵗ⁾`, so it is enough that **one** member has level at most `κ`.  The
+witnesses may be drawn from anywhere in the box. -/
+theorem meet_progress_of_no_crossing (hd : 0 < d) (p : Fin d → Pt d)
+    (hlev : ∃ l, lev (p l) ≤ κ)
+    (hcross : ∀ l t, (p t) l ≤ (p l) l → F (p t) l < (p t) l) :
+    lev (infPt Finset.univ p) ≤ κ ∧
+      (infPt Finset.univ p ∈ Down F ∨ ∃ t, IsVop F (infPt Finset.univ p) (p t)) := by
+  have hTne : (Finset.univ : Finset (Fin d)).Nonempty :=
+    ⟨⟨0, hd⟩, Finset.mem_univ _⟩
+  refine ⟨?_, ?_⟩
+  · obtain ⟨l₀, hl₀⟩ := hlev
+    exact le_trans (lev_mono (infPt_le hTne p (Finset.mem_univ l₀))) hl₀
+  by_cases hmono : ∀ t, F (infPt Finset.univ p) ≤ F (p t)
+  · refine Or.inl (mem_Down.mpr (coord_le fun m => ?_))
+    obtain ⟨s, -, hseq⟩ := exists_infPt_eq hTne p m
+    -- the minimiser at `m` sits at or below the `m`-th pin, so it is strictly down there
+    have hle : (p s) m ≤ (p m) m := by
+      rw [← hseq]
+      exact le_coord (infPt_le hTne p (Finset.mem_univ m)) m
+    have h1 := hcross m s hle
+    have h2 := le_coord (hmono s) m
+    omega
+  · push Not at hmono
+    obtain ⟨t, hbad⟩ := hmono
+    exact Or.inr ⟨t, infPt_le hTne p (Finset.mem_univ _), hbad⟩
+
 end Points
 
 /-! ### Consistency with the `d = 3` development

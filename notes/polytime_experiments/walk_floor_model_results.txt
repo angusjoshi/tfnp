@@ -1,0 +1,4 @@
+n=   16  E[cross]=  2.69  E[band]=  5.44  2*cross/band=0.989  cross/sqrt(n)=0.673
+n=   64  E[cross]=  5.76  E[band]= 11.46  2*cross/band=1.004  cross/sqrt(n)=0.719
+n=  256  E[cross]= 12.10  E[band]= 24.13  2*cross/band=1.003  cross/sqrt(n)=0.756
+n= 1024  E[cross]= 23.94  E[band]= 47.93  2*cross/band=0.999  cross/sqrt(n)=0.748

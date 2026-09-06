@@ -1,0 +1,25 @@
+d=4      ssg: T=20 levels=228 recross/level=1.62 max=8 stepband=3.25 escband=7.86 qhat=0.987 flatwin=76.2
+d=4  randbal: T=19 levels=216 recross/level=0.70 max=6 stepband=1.53 escband=4.48 qhat=0.894 flatwin=9.5
+d=4  cellmax: T=20 levels=228 recross/level=1.61 max=9 stepband=2.76 escband=6.66 qhat=0.912 flatwin=11.4
+d=6      ssg: T=20 levels=570 recross/level=0.51 max=10 stepband=1.21 escband=4.19 qhat=0.918 flatwin=12.1
+d=6  randbal: T=19 levels=540 recross/level=0.70 max=8 stepband=1.57 escband=5.37 qhat=0.974 flatwin=38.1
+d=6  cellmax: T=20 levels=570 recross/level=1.52 max=9 stepband=2.91 escband=7.04 qhat=0.933 flatwin=14.9
+d=8      ssg: T=20 levels=1064 recross/level=0.60 max=7 stepband=1.31 escband=4.37 qhat=0.926 flatwin=13.4
+d=8  randbal: T=19 levels=1008 recross/level=0.94 max=8 stepband=1.95 escband=5.72 qhat=0.931 flatwin=14.5
+d=8  cellmax: T=20 levels=1064 recross/level=1.40 max=9 stepband=2.51 escband=6.49 qhat=0.893 flatwin=9.4
+d=10      ssg: T=20 levels=1710 recross/level=0.61 max=10 stepband=1.35 escband=4.98 qhat=0.946 flatwin=18.5
+d=10  randbal: T=19 levels=1620 recross/level=1.03 max=9 stepband=2.21 escband=6.56 qhat=0.990 flatwin=99.5
+
+# randbal seed replicates (seeds 2,3; seed 1 above):
+d=4 randbal seed=2: T=19 levels=216 recross/level=1.49 max=7 stepband=2.71
+d=4 randbal seed=3: T=19 levels=216 recross/level=0.65 max=5 stepband=1.52
+d=6 randbal seed=2: T=20 levels=570 recross/level=1.08 max=8 stepband=2.19
+d=6 randbal seed=3: T=19 levels=540 recross/level=0.72 max=7 stepband=1.74
+d=8 randbal seed=2: T=19 levels=1008 recross/level=1.01 max=12 stepband=2.35
+d=8 randbal seed=3: T=20 levels=1064 recross/level=0.92 max=8 stepband=1.99
+d=10 randbal seed=2: T=19 levels=1620 recross/level=0.80 max=7 stepband=1.77
+d=10 randbal seed=3: T=19 levels=1620 recross/level=0.74 max=9 stepband=1.73
+
+# pooled randbal recross/level means (3 seeds): d=4: 0.95  d=6: 0.83  d=8: 0.96  d=10: 0.86 -- FLAT in d
+# toll check everywhere: 2*recross ~= stepband (ratio 0.91-1.00)
+# coin-model floor at measured flat-windows would be ~2.2-7/level (walk_floor_model.py): real walks sit 3-10x BELOW the floor, no d-growth

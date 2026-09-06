@@ -15,7 +15,7 @@ CLY v2 already has `O(d log 1/ε)` — matched by this repo's formalization
 (`cly_query_complexity`), nothing to claim there. `polytime.md`'s table cites
 CLY v1 and is outdated on this point.
 
-**Status:** NOT solved. The open core after 36 cycles is a cumulative form
+**Status:** NOT solved. The open core after 41 cycles is a cumulative form
 of the original conjecture (★): *balanced-cut dynamics creates only
 polynomially many tracked (mass ≥ η) cells/lineages* — measured `O(d·t)`
 under every adversary built; proved for two strata; resistant to every
@@ -110,7 +110,18 @@ straddle–dodge dichotomy: non-straddling front cells have strict argmaxes
 ⟹ die at ½/round — dodging is a straddler-only privilege**, cycle 35), `both_agree_keeps` (**agree–agree
 rounds keep the whole pattern cell split in two — the birth event;
 completes the machine-checked straddler offspring table (2,1,1,0) at ¼
-each**, cycle 36).
+each**, cycle 36), `pyr_mem_halfspace` (**eviction definitional at every
+depth**, cycle 37), `strict_argmax_of_resolved` (**fully-resolved deep
+cells die at ½/round annealed at every depth — the decay half of the
+stacking dichotomy**, cycle 38), `walk_no_recross` (**the escape fence:
+recrossings confined to the escape band — deterministic half of the
+recrossing budget**, cycle 40), `annealed_crossing_toll` (**the crossing
+toll: 2 × level crossings = strict step-band residence, exactly, for
+fair-coin walks — the recrossing budget is machine-checked-EQUIVALENT to a
+band-residence bound**, cycle 41; the cycle-41 no-go: fairness + geometric
+step envelope alone carry a Θ(√flat-window) Littlewood–Offord floor, so
+the budget needs FW-dynamics transience or an algorithmic apex rule —
+`notes/smoothed.md` §4h).
 
 ## 2. Assembled results (paper-level; every ingredient Lean-checked unless noted)
 
@@ -181,6 +192,14 @@ each**, cycle 36).
   anatomy: detection mass < 2η (91–94%), but incubation ages reach 11
   rounds under cellmax — growth with memory, not flicker. Rates O(d)/round
   everywhere.
+* **Walk-recrossing law (cycle 41, `walk_recross_scaling.py` →
+  `walk_recross_scaling_results.txt`):** offset-walk recross/level FLAT in
+  d = 4–10 under every oracle (randbal pooled 0.83–0.96 over 3 seeds, ssg
+  0.5–0.6, cellmax 1.4–1.6; max ≤ 12); everywhere `2 × recross ≈ stepband`
+  (the Lean toll's fair-coin pricing, exact on real dynamics — no sign
+  bias); real walks sit 3–10× BELOW the coin-model floor at their measured
+  flat windows (`walk_floor_model.py`: floor `≈ 0.7√n`, toll ratio 1.00) —
+  the per-level transience is dynamical, not combinatorial.
 * **Heuristic apexes:** history-only rules: ZERO worst-case progress;
   cell-list-only (uniform-over-cells): Ω(1) open-loop but STALLS closed-loop
   (endogenous-counting mechanism); minimal sufficient statistic = cell list
@@ -211,7 +230,13 @@ each**, cycle 36).
    thorough map, cycle 28).
 7. **The repo's query bound does not beat SOTA** (CLY v2 = O(k log 1/ε)
    already).
-8. Older campaign negatives (cycles 1–10 era): κ-conditioning ≡ open lemma;
+8. **Distribution-free walk analysis of the recrossing budget: DEAD
+   (cycle 41).** Coin fairness + geometric step envelope admit near-flat
+   windows with a Θ(√flat-window) Littlewood–Offord band-residence floor
+   (MC-confirmed), and measured flat windows are 10–100 rounds — through
+   `E[S] ≤ 2^{O(recross)}` the abstract model cannot even give quasi-poly.
+   The budget must use FW-dynamics structure or apex design.
+9. Older campaign negatives (cycles 1–10 era): κ-conditioning ≡ open lemma;
    well-roundedness insufficient; Idea-D cheap centers die on
    Melekopoglou–Condon; M1/Corollary-C dead; C3 kernel collapse.
 
@@ -280,16 +305,34 @@ crack it.
    theorem closed the 2-simple annealed process (straddlers exactly
    critical, ≤ 1 per channel, bulk ½-subcritical ⟹ E[N] ≤ 2/channel,
    E[L_2simple] ≤ L₀ + O(d²T)) — **the pure-2-simple annealed theorem is
-   END-TO-END**. OPEN — the single remaining piece of the GENERAL annealed
-   theorem: **(A1'') deep-straddler occupancy** — fully-straddling m-cells
-   branch at m/2 (supercritical, m ≥ 3); bound expected fully-straddling
-   rounds per deep lineage by O(1) (splits evict offsets to boundaries —
-   lineage lemma; measured O(1); worst-case depthmax sustains it, so this
-   is exactly the annealed/adversarial divergence point). Then v3 (or v4 with exact slab-crumb tracking,
-   smoothed.md §4b — leak vanishes identically) is poly-time w.h.p.
-   annealed; then bridge to random-SSG sign processes via per-stratum
-   approximate balance (the measured flux law). THIS IS THE ACTIVE
-   TRACK — attack (A1'') next.
+   END-TO-END**. Cycle 37: occupancy-as-transience FALSIFIED
+   (straddling persistent under the annealed oracle itself; the
+   criticality signature — balance makes every population quantity exactly
+   critical, so decay-rate arguments cannot work; pair criticality with a
+   BUDGET as the cycle-36 proof did). OPEN — the single remaining piece of
+   the GENERAL annealed theorem, final form: **(A1''-final) E[distinct
+   other-form record classes per tie set among tracked cells] = O(1)
+   annealed** — transverse stacking with survival-priced record
+   divergences (each divergence's resolved rounds priced 2^{-a} by
+   `annealed_survival_pow`; `pyr_mem_halfspace` gives eviction at every
+   depth). Cycles 39–41 reduced (A1'') twice more: the shared-coin stack
+   martingale makes stack growth pure IMMIGRATION = level-crossings of the
+   offset walk (cycle 39); `walk_no_recross` (cycle 40) confines crossings
+   to the escape band; `annealed_crossing_toll` (cycle 41, Lean) makes
+   2 × crossings = strict step-band residence EXACTLY. **Final form of the
+   open piece: the BAND-RESIDENCE BUDGET — E[rounds the offset walk spends
+   within one step of a past level] = O(1) annealed (O(log dt) ⟹
+   quasi-poly).** The cycle-41 no-go (smoothed.md §4h): coin fairness +
+   geometric envelope have a Θ(√flat-window) Littlewood–Offord floor, so
+   the budget is NOT provable in the abstract walk model — it needs the
+   dynamics' own transience (candidate engine: `one_sided_of_kept`
+   mean-repulsion; measured: recross/level FLAT in d = 4–10, 3–10× below
+   the coin-model floor, toll pricing exact) or the apex-design lever.
+   Then v3 (or v4 with exact slab-crumb tracking, smoothed.md §4b — leak
+   vanishes identically) is poly-time w.h.p. annealed; then bridge to
+   random-SSG sign processes via per-stratum approximate balance (the
+   measured flux law). THIS IS THE ACTIVE TRACK — attack the
+   band-residence budget next.
 3. **Amortized depth ⟹ quasi-poly track:** the limit-cycle data suggests
    the time-integral of depth excursions is small; depth ≤ O(log dt)
    amortized ⟹ L quasi-poly ⟹ randomized quasi-poly SSG, **beating the

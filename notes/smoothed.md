@@ -231,6 +231,180 @@ final form. Note the worst case is genuinely different here: depthmax
 SUSTAINED deep straddling (cycle 23) — occupancy is where annealed and
 adversarial dynamics part ways.
 
+## 4e. The occupancy verdict (cycle 37) — persistence, criticality, and the
+## surviving formulation
+
+**Machine-checked (`pyr_mem_halfspace`):** eviction is definitional at
+every depth — a kept pyramid piece lies in ALL the cut's pencil halfspaces,
+so every split evicts every offset of the apex to the piece's boundary.
+Fresh penetration is budgeted at `2δ`/round (marching bound).
+
+**Measured (`occupancy_probe.py` → `occupancy_results.txt`): the
+transient-occupancy hope is FALSE at working scales.** Straddling is
+persistent (runs spanning the whole measurement window under randbal —
+the ANNEALED-model oracle), penetration/minority-fraction drifts UP for
+survivors (mean +0.05, only 39% negative), and birth-grade straddling runs
+long too (instrument caveat: run histograms count prefixes; read the max
+and window-saturation, which are unambiguous). Deep-straddler counts are
+substantial every round. The population stays balanced (births ≈ deaths,
+L linear) not because straddling is scarce but because the population
+process is critical.
+
+**The criticality signature (the honest structural reading).** Everything
+coupled to balance is EXACTLY critical: kept fraction ½ × renormalization
+×2 = mass martingale (cycle 33); straddler offspring mean 1 (cycle 36);
+birth-grade run mass-financing (each split halves the token, regrowth
+doubles it) — critical again. Balance bakes criticality into every
+population quantity; no subcriticality argument can close the deep case.
+The theorem must come from **budgeted resources**, not decay rates. The
+proved budgets: walk positions ≤ 2t+1 per channel; mid-extent crossings
+once per (lineage, pencil); pencil energy `4k‖u‖²`. The cycle-36
+population-balance theorem worked exactly because it paired criticality
+with a budget (≤ 1 straddler per channel).
+
+**The surviving formulation of (A1'').** At depth, the channel structure is
+the other-forms record classes, and per-channel straddler uniqueness IS
+transverse stacking — the campaign's original residue, now with the
+annealed pricing tool: two stacked cells differ in a record entry acquired
+`a` rounds ago, whose holder survived `a` rounds (`annealed_survival_pow`:
+`2^{-a}` for the resolved rounds). **(A1''-final): E[number of distinct
+other-form record classes among tracked cells of one tie set] = O(1) in
+the annealed model, via survival-priced record divergences.** This is
+(A1)-original made precise; the occupancy detour is closed (and its
+falsification recorded so it is not re-attempted).
+
+## 4f. The stacking dichotomy, decay half (cycle 38) — and an error caught
+
+**Machine-checked (`strict_argmax_of_resolved`):** an m-simple point on tie
+set `M` whose pairwise signed-offset comparisons on `M` are all strictly
+resolved (it straddles NONE of its tie set's current offsets) has a strict
+argmax — so `annealed_half_kept` applies: **fully-resolved deep cells die
+at rate exactly ½ per round in the annealed model, at every depth.** The
+dodge privilege belongs exclusively to cells straddling ≥ 1 of their own
+tie forms.
+
+**Error caught before commit (recorded so it is not re-attempted):** the
+cycle-36 budget "≤ 1 straddler per channel" does NOT lift to depth as
+"≤ 1 straddler per form". At depth, cells with different other-form
+records can straddle the SAME form simultaneously — that is precisely
+transverse stacking (and the stacking probe's geoK data shows containment
+is plentiful). The interval argument closes the pure-2-simple case only
+because there the record IS the φ-position. **The budget half of the deep
+dichotomy is exactly the stacking count — unchanged, still the open
+core.** No per-tie-set population balance is claimed.
+
+**Net state of the general annealed theorem:** decay half proved at every
+depth (resolved ⟹ ½-death); budget half = (A1''-final): E[#same-form
+straddlers with distinct records] = O(1) annealed, to be proved by
+survival-pricing the record divergences. The pure-2-simple theorem (§4d)
+is unaffected.
+
+## 4g. The recrossing reduction (cycle 39) — the last piece becomes a walk
+## statement
+
+**The shared-coin stack martingale.** All ψ-straddlers face the SAME two
+coins each round: agree–agree ⟹ every member births (`both_agree_keeps`);
+single-agree ⟹ every member halves to the agreeing side
+(`pair_membership_iff`); double-disagree ⟹ **the whole stack dies together**
+(`double_disagree_kills`). Stack size is a martingale with jumps
+(×2, ×1, ×0) — E[S] constant except for **immigration**: lineages newly
+entering ψ-straddlerhood.
+
+**Immigration is walk geometry.** Extent boundaries are past offsets
+(lineage lemma), so every entry into straddlerhood is a level-crossing of
+the offset walk `v_t = φ_ψ(c_t)` over some past level `v_r`. A monotone
+walk crosses each level once. Caveat (honest): one crossing can admit the
+whole stack flanking that level, so admissions compose multiplicatively:
+
+> `E[S] ≤ 2^{O(max per-level recrossings)}`, and total births per pencil
+> `≤ ¼·Σ_t E[S_t]`.
+
+**The reduction:** the general annealed theorem's last piece is now the
+
+> **OFFSET-WALK RECROSSING BUDGET: for annealed FW-apex trajectories,
+> the expected number of times a pencil's offset re-crosses any fixed past
+> level is O(1) (O(log dt) suffices for the quasi-poly milestone).**
+
+A statement about one real-valued walk (the FW apex functional of the
+random surviving measure, steps shrinking with the diameter) — standard
+probability toolkit shape (shrinking-step random walk level crossings),
+no cells, no populations.
+
+**Measured (`walk_recross.py`, d = 6, T = 20, all 30 pencils × both
+signs):** recrossings per level — ssg **0.51**, randbal **0.70**,
+adversary 1.09, cellmax **1.52** (max 8–10 over 570 levels). O(1) means
+everywhere, including the path-curving adversary that cycle 21 feared.
+The annealed/benign walks are effectively monotone at the per-level scale.
+
+**Closure routes:** (a) prove the recrossing bound for annealed apex walks
+(the steps' conditional sign-symmetry + geometric shrinkage ⟹ O(1)
+expected crossings per level — the concrete probability lemma to attack);
+(b) the algorithmic nudge (cycle-21 line-epoch lever): choose apexes
+within the centerpoint region to keep every pencil's walk low-recrossing —
+turns the bound into a design constraint rather than a theorem about FW.
+
+## 4h. The crossing toll made exact; the abstract-walk no-go (cycle 41)
+
+**Machine-checked (`annealed_crossing_toll`, Lean, sorry-free):** for the
+fair-coin walk (round-`s` step `±μ_s` by an independent fair coin,
+`μ_s ≥ 0`), summed over ALL coin tuples,
+
+> `2 × (total crossings of any fixed level ℓ) = total strict step-band
+> residence at ℓ` (rounds with `0 < |v_t − ℓ| < μ_t`).
+
+Mechanism: a crossing requires being strictly inside the one-step band (a
+past-measurable event) plus ONE specific fresh coin — exactly half the
+band-resident tuples cross. With `walk_no_recross` (band rounds confined to
+the escape band), the recrossing budget is now EQUIVALENT, machine-checked,
+to a **band-residence bound**: the walk's position must anticoncentrate
+relative to its own past levels.
+
+**Empirical validation (`walk_recross_scaling.py`, d = 4,6,8,10, T = 20,
+ssg/randbal/cellmax, randbal ×3 seeds):** on real FW-apex walks,
+`2 × recross/level ≈ stepband/level` at every d and oracle (ratio
+0.91–1.00) — the fair-coin pricing of crossings is exactly right for the
+real dynamics. **All the smallness of the measured recrossings lives in the
+smallness of band residence (1.2–3.3 rounds/level), not in any sign
+bias.** And recross/level is **FLAT in d**: randbal pooled means
+0.95/0.83/0.96/0.86 (d = 4/6/8/10 — a single-seed apparent √d trend was
+seed noise, caught by replication), ssg 0.5–0.6, cellmax 1.4–1.6.
+
+**The no-go (record as do-not-attempt):** coin fairness + a geometric step
+envelope alone CANNOT give the budget. The measured envelopes have
+`q̂ ≈ 0.89–0.99` (flat windows `n ≈ 1/(1−q̂) ≈ 10–76` rounds), and the
+model admits `n` near-flat steps `μ_t ≈ Δ` (generic, incommensurate)
+inside such an envelope; such a walk's expected strict residence within one
+step of a generic level in its range is `Θ(√n)` (local CLT:
+`P[|v_t − ℓ| < Δ] ~ t^{-1/2}`; for EXACTLY flat steps and the walk's own
+lattice levels the strict count degenerates — genericity matters), hence
+`Θ(√n) = Θ(√d)`-type recrossings per level — not `O(1)`, not even
+`O(log)`. Through the §4g stack composition `E[S] ≤ 2^{O(recross)}` this is
+super-polynomial: **the abstract walk model cannot even reach the
+quasi-poly milestone.** The Littlewood–Offord obstruction is the same
+anticoncentration floor that killed the pure-ledger routes (cycle 28): no
+distribution-free counting argument beats `√t`.
+Monte-Carlo check (`walk_floor_model.py`): near-flat fair walk, generic
+level — `E[cross]/√n = 0.67–0.75` stable over `n = 16 → 1024` (the floor
+is real) and `2·cross/band = 0.99–1.00` (the toll identity, on the nose).
+Read against the floor: the REAL walks (0.5–1.6 recross/level at measured
+flat-windows 10–76, whose coin-model floor would be ≈ 2.2–6) recross
+**3–10× less than their own coin model** — the FW dynamics has genuine
+per-level transience that fairness alone provably cannot supply.
+
+**What survives (the two live closures, sharpened):**
+1. **Dynamics route:** the band-residence bound must come from a
+   transience property of the ACTUAL apex walk. Candidate mechanism, with
+   its Lean-checked engine: `one_sided_of_kept` — every cut leaves the
+   surviving measure one-sided at every pair, off ties — so each round
+   evicts the mass (whose FW balanced point the next apex IS) from the
+   current offset's neighborhood: the walk is mean-repelled from its own
+   trace. The target lemma: E[rounds with `|φ(c_t) − ℓ| < μ_t`] = O(1)
+   for the annealed FW dynamics (O(log dt) suffices for quasi-poly).
+2. **Design route (cycle-21 lever):** choose apexes inside the centerpoint
+   region so every pencil's offset walk is per-level monotone outside its
+   escape band — turns the budget into an algorithmic constraint; open
+   feasibility (progress vs monotonicity trade-off).
+
 ## 4b. The recycling insight (cycle 34)
 
 The measured Doob ratios (~0.9–1.06 for neutral oracles) say the bound is
@@ -249,7 +423,63 @@ is the same open front half of (A1). Worst-case this is (★) again — but
 for the ANNEALED/smoothed theorem, v4 + (A1)-front closes correctness AND
 time simultaneously.
 
-## 5. Instrument predictions (falsifiable, cycle 33)
+## 5. THE ANNEALED PURE-2-SIMPLE THEOREM (consolidated, cycle 40)
+
+> **Theorem (annealed, pure-2-simple).** Consider balanced-cut dynamics on
+> `[0,1]^d`, `d = 2m`, with oracle signs drawn each round uniformly from
+> the balanced sign vectors, independently of the past, and suppose the
+> tracked (mass ≥ η) cells remain 2-simple at working scale with
+> `4δ`-robust tie gaps along the trajectory. Then over `T` rounds:
+> (i) each (pair, pattern) channel holds at most 2 expected tracked cells
+> at any time; (ii) the expected number of tracked lineages ever created
+> is `L₀ + O(d²T)` + the emergence channel, which is self-financing
+> (`E[emerged mass] ≤ shed mass`; `E[#emergences] ≤ shed/η`);
+> (iii) consequently the v3 cell-tree algorithm runs in expected
+> polynomial time with expected leak bounded by the shed ledger on this
+> class.
+
+**Proof structure, with machine-checked citations (all sorry-free):**
+1. Channel structure: pair-record theorem (`pair_membership_iff`), walk
+   lemma (`ncard_range_signPattern_le`); pair invariance of robust mass
+   at every scale (`pair_invariant_of_robust`, cycle 31) — records
+   telescope, channels don't multiply.
+2. Offspring table of a straddler, pointwise: birth (`both_agree_keeps`),
+   single-side survival (`pair_membership_iff`), death
+   (`double_disagree_kills`) — mean offspring `1 ∓ O(1/d)` (balanced-sign
+   pair probabilities `(m−1)/(2(2m−1))` etc.).
+3. Non-straddlers die at exactly ½: `strict_argmax_of_one_sided` +
+   `annealed_half_kept` (and at depth, `strict_argmax_of_resolved`);
+   iterated: `annealed_survival_pow`.
+4. ≤ 1 straddler per channel (interval disjointness of the pure-2-simple
+   record classes) ⟹ per-channel population balance `E[N] ≤ 2`.
+5. Emergences: incubator martingale + Doob (§3), with `pyr_mem_halfspace`
+   and `gap_lipschitz` fencing entries and evictions.
+
+**Caveats (honest):** the `O(1/d)` sign-correlation corrections are stated
+but not yet carried through a full assembly; "pure-2-simple with robust
+gaps" excludes the collar mass (the general theorem needs the recrossing
+budget, §4g); exact balance `vol(X_t) = 2^{-t}` is an idealization
+(approximate balance costs `exp(O(γt))` factors). The assembly into a
+publishable statement is mechanical but real work; every load-bearing
+pointwise fact is Lean-checked.
+
+**General annealed theorem, remaining distance:** the offset-walk
+recrossing budget (§4g), now reduced further (§4h, cycle 41): the
+deterministic half is Lean-checked (`walk_no_recross`: recrossings confined
+to the escape band) and the probabilistic half is Lean-EQUIVALENT to a
+band-residence bound (`annealed_crossing_toll`: 2 × crossings = step-band
+residence, exactly). The open piece, final form: **E[step-band residence
+per past level] = O(1) for the annealed FW-apex walk** (O(log dt) for the
+quasi-poly milestone) — and the §4h no-go shows this CANNOT follow from
+coin fairness + step shrinkage alone (Θ(√flat-window) Littlewood–Offord
+floor); it needs the dynamics' own transience (candidate engine:
+`one_sided_of_kept`) or an algorithmic apex rule. Measured
+(`walk_recross_scaling.py`, d = 4–10, randbal ×3 seeds): 0.5–1.6
+recrossings/level, FLAT in d, matching the fair-coin toll on the nose —
+and 3–10× BELOW the coin-model floor at the measured flat windows: the
+required transience is real, d-robust, and dynamical.
+
+## 5b. Instrument predictions (falsifiable, cycle 33)
 
 1. **Emerged-vs-shed ratio:** cumulative unnormalized emerged mass ≤
    cumulative unnormalized mass that left the tracked set. Annealed/ssg:

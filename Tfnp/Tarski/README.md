@@ -72,7 +72,7 @@ shape. Everything therefore goes through `le_coord` / `coord_le`
 | `LevelsetLoop.lean` | **The loop, and the whole subprocedure**: `configResolve` (Lemma 3.12 made algorithmic), `lsLoop`, and **`solvesLevelset_lsInner`** with `lsInner_bounded` |
 | `Bound.lean` | **Query upper bounds for `Tarski(n,d)`**: the dimension-1 primitive, the block recursion, and the assembled bounds |
 | `BoundHL.lean` | The `d = 3` hypothesis of `Bound.lean` discharged: **`tarski_cube_bound_hl`**, `tarski_cube_bound_all` |
-| `GeneralDim.lean` | **The configuration argument in every dimension**: `exists_covering`, `exists_meet_progress`, and the `d = 3` subsumption check |
+| `GeneralDim.lean` | **Dimension-uniform progress**: `exists_covering`, `exists_meet_progress`, **`meet_progress_of_no_crossing`**, `slack_sum_le`, and the `d = 3` subsumption check |
 
 ## The decomposition theorem (FPS Theorem 18)
 
@@ -578,6 +578,38 @@ from being pinned, and is sound, since it only lowers `lev ℓ` and raises `lev 
 `sDiam_cases`' conclusions transfer to the witnessed corners) does *not* rescue this:
 it removes the third configuration but stalls instead, occasionally even at `d = 3`,
 where HL's Lemma 3.13 is what covers those states.
+
+**The invariant can be weakened, twice, and the barrier still holds.**  The singleton
+condition is *sufficient* dressed up as necessary.  What the meet actually needs is only
+that whoever attains the minimum at each coordinate is weakly down there — and there is
+a duality supplying that for free: a point failing to pin `l` from below is strictly up
+at `l`, hence pins `l` from *above*.  So with `ℓ_l`/`r_l` the best low/high pins, any
+family member at or below `ℓ_l` cannot be weakly up at `l` once `ℓ_l < r_l`.  That gives
+`meet_progress_of_no_crossing`: no sign condition, no level bound, and — since
+`lev z ≤ minₜ lev p⁽ᵗ⁾` — the family need not lie on the levelset at all, only **one**
+member needs level `≤ κ`.  Balanced-sign points are therefore usable, and HL's co-level
+requirement is far stronger than necessary.
+
+Neither weakening breaks `d ≥ 4`: the adversary switches from withholding usable
+witnesses to **forcing a crossing in every coordinate at once**, which is HL's third
+configuration replicated `d` times.  The obstruction is stable, and now stated as one
+condition rather than a sign pattern.
+
+Nor does any *oblivious* query geometry help.  Crossing-freeness is automatic for a
+**star** `{h − c·eₜ}` (each member the strict minimiser at its own coordinate), whose
+meet lands on the levelset when `lev h = κ + cd`; HL's Lemma 3.6 corner star is the case
+`c = 1`.  Sweeping anchors and dips beats a *randomly* balanced adversary at cost `~2^d`,
+but is defeated outright — 0 of 8 seeds, every `n`, **including `d = 3`** — by three
+explicit monotone instances: a fixed strict-up set, the "anti-star" map, and the
+averaging map `F(x) = (⌊avg x⌋, …)`.  Each of those is individually trivial to solve, so
+oblivious geometries have blind spots rather than the problem being hard.
+
+The reason is worth recording.  Monotonicity lets one *lower* the non-`t` coordinates of
+a strictly-down-at-`t` witness for free — `q ≤ w`, `q_t = w_t` gives
+`F(q)_t ≤ F(w)_t < w_t = q_t` — so certificates are preserved downward.  But
+crossing-freeness wants the other coordinates *high*.  The one direction the structure
+hands you is the wrong one, which is why the pins have to be moved *adaptively* by the
+observed signs, as HL do at `d = 3`.
 
 So a fixed-parameter result needs a progress mechanism that extracts value from
 balanced-sign points.  Chen–Li–Yannakakis's candidate sets are exactly that — they

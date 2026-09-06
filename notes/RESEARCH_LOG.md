@@ -1014,6 +1014,129 @@ Direction chosen by the user: smoothed. Model and targets in `notes/smoothed.md`
   rounds per deep lineage = O(1) in the annealed model. This is also exactly where
   annealed and worst-case part ways: depthmax SUSTAINED deep straddling (cycle 23).
 
+## Cycle 37 — occupancy falsified; the criticality signature; (A1'') final form
+
+- **Lean (`Tfnp/Annealed.lean`, +1 sorry-free): `pyr_mem_halfspace`** — eviction is
+  DEFINITIONAL at every depth: a kept pyramid piece lies in all the cut's pencil
+  halfspaces; every split evicts every offset to the piece boundary. Fresh
+  penetration budgeted at 2δ/round (marching bound).
+- **Occupancy probe (`occupancy_probe.py` → `occupancy_results.txt`): the
+  transient-occupancy hope is FALSE.** Under randbal (the annealed oracle itself),
+  straddling runs span the whole measurement window, penetration drifts UP for
+  survivors (+0.05 mean, 39% negative), deep straddlers are plentiful every round.
+  Population stays balanced through criticality, not scarcity. (Instrument caveats:
+  run histograms count prefixes; d=5 quick + d=6 in-window scales are the fattest
+  margin regime.)
+- **The criticality signature (structural insight of the cycle):** everything
+  coupled to balance is EXACTLY critical — mass martingale, straddler offspring
+  mean 1, birth-run mass-financing. Balance bakes criticality into every population
+  quantity, so no decay-rate argument can close the deep case: the theorem must
+  pair criticality with a BUDGET (as cycle 36 did: ≤ 1 straddler per channel).
+  Proved budgets available: walk ≤ 2t+1 per channel; once-per-(lineage,pencil)
+  mid-extent; pencil energy.
+- **(A1'') final form:** per-channel uniqueness at depth = transverse stacking,
+  with the annealed pricing tool: stacked cells differ in a record entry whose
+  holder survived its age (annealed_survival_pow: 2^{-a} on resolved rounds).
+  **E[distinct other-form record classes per tie set among tracked cells] = O(1)
+  annealed.** The occupancy detour is closed and recorded as a do-not-re-attempt.
+
+## Cycle 38 — resolved-cell extinction (Lean); the budget half stays stacking (error
+## caught pre-commit); occupancy full-run confirms cycle 37
+
+- **Occupancy full run (d=6) confirms cycle 37:** straddling persistent (runs to 12 =
+  whole window), drift positive everywhere. New signature: randbal's BIRTH-GRADE runs
+  decay geometrically ≈ 0.45/step (the annealed ¼ coin-gate visible in data); ssg's
+  tail is fatter (mean 4.0, max 12); cellmax's is short (max 3 — it spreads splits).
+- **Lean (`Tfnp/Annealed.lean`, +1 sorry-free): `strict_argmax_of_resolved`** — an
+  m-simple point straddling NONE of its tie set's offsets (all pairwise comparisons
+  strictly resolved) has a strict argmax ⟹ dies at ½/round annealed
+  (annealed_half_kept), at every depth. The dodge privilege is exclusively for
+  cells straddling ≥ 1 own-tie form. 41 sorry-free campaign theorems.
+- **ERROR CAUGHT BEFORE COMMIT (logged as a do-not-re-attempt):** "≤ 1 straddler per
+  form" does NOT hold at depth — differently-recorded cells can straddle the same
+  form simultaneously (= transverse stacking; the geoK data already showed plentiful
+  containment). The interval budget closes only the pure-2-simple case (record =
+  φ-position). The planned per-tie-set balance E[N_M] ≤ O(m³) was WRONG and is not
+  claimed. The general annealed theorem's budget half remains exactly (A1''-final):
+  stacking = O(1) via survival-priced record divergences.
+
+## Cycle 39 — the recrossing reduction: the annealed theorem's last piece is now a
+## WALK statement; measured O(1) under every oracle
+
+- **The shared-coin stack martingale (smoothed.md §4g):** all ψ-straddlers face the
+  same coins — agree-agree births ALL (both_agree_keeps), single-agree halves all,
+  double-disagree kills the whole stack (double_disagree_kills). Stack size is a
+  martingale (×2/×1/×0 jumps); only IMMIGRATION moves E[S].
+- **Immigration = walk geometry:** extent boundaries are past offsets (lineage
+  lemma), so entries into straddlerhood are level-crossings of the offset walk.
+  Honest accounting: one crossing can admit the flanking stack ⟹ E[S] ≤
+  2^{O(per-level recrossings)}. **The general annealed theorem reduces to the
+  OFFSET-WALK RECROSSING BUDGET: expected re-crossings of any fixed past level =
+  O(1) for annealed FW-apex walks (O(log dt) ⟹ quasi-poly milestone).** One
+  real-valued shrinking-step walk — standard probability toolkit shape; no cells,
+  no populations. Closure routes: (a) annealed walk analysis; (b) the cycle-21
+  apex-nudge (make low recrossing a design constraint).
+- **Measured (`walk_recross.py` — samples-free, pure apex-sequence analysis; d=6,
+  T=20, 570 levels):** recross/level mean — ssg 0.51, randbal 0.70, adversary 1.09,
+  cellmax 1.52; max 8–10. O(1) everywhere INCLUDING the path-curving cellmax.
+  The measured walks are effectively monotone at per-level scale.
+
+## Cycle 40 — the escape fence (Lean); the annealed theorem consolidated
+
+- **Lean (`Tfnp/Annealed.lean`, +1 sorry-free): `walk_no_recross`** — a walk beyond
+  its remaining travel budget never recrosses a level (finite-sum induction).
+  Deterministic half of the recrossing budget: recrossings are confined to the
+  escape band (width Δ_t/(1−q) for geometric steps); only band-residence needs
+  probability. 43 sorry-free campaign theorems.
+- **Consolidation (smoothed.md §5): THE ANNEALED PURE-2-SIMPLE THEOREM** stated in
+  full with its five-step proof structure and complete Lean citations (channel
+  structure / offspring table / ½-death off-straddle / per-channel balance /
+  emergence martingale), plus honest caveats: O(1/d) sign-correlation corrections
+  not yet assembled; collar mass excluded (general case = recrossing budget);
+  exact-balance idealization. Every load-bearing pointwise fact is machine-checked;
+  the assembly to a publishable statement is mechanical-but-real work.
+- Session state: 10 cycles tonight (31–40); the general annealed theorem's open
+  piece is the probabilistic band-residence bound for annealed FW-apex offset
+  walks (measured 0.5–1.5 recrossings/level under every oracle).
+
+## Cycle 41 — the crossing toll (Lean); the abstract-walk no-go; the d-scaling
+## verdict: real walks beat their own coin model
+
+- **Lean (`Tfnp/Annealed.lean`, +1 sorry-free): `annealed_crossing_toll`** —
+  for the fair-coin walk (steps `±μ_t ≥ 0`, independent fair coins), summed
+  over ALL coin tuples: **2 × (crossings of any level) = (strict step-band
+  residence)**, exactly. A crossing = band residence (past-measurable) + one
+  specific fresh coin. With `walk_no_recross`, the recrossing budget is now
+  machine-checked-EQUIVALENT to a band-residence (anticoncentration) bound.
+  44 sorry-free campaign theorems; full `lake build` green.
+- **The no-go (recorded, `smoothed.md` §4h):** fairness + geometric step
+  envelope alone CANNOT give the budget. Measured envelopes have flat
+  windows `1/(1−q̂) ≈ 10–100` rounds; `n` near-flat fair steps give
+  `Θ(√n)` expected strict band residence per generic level (local CLT /
+  Littlewood–Offord). MC-confirmed (`walk_floor_model.py`): `E[cross]/√n =
+  0.67–0.75` stable over `n = 16→1024`; toll ratio `0.99–1.00`. Through the
+  `E[S] ≤ 2^{O(recross)}` stack composition, `√d` in the exponent is
+  super-poly — **the abstract walk model cannot even reach the quasi-poly
+  milestone.** Do-not-attempt: distribution-free walk analysis of §4g(a).
+- **The d-scaling probe (`walk_recross_scaling.py`, d = 4,6,8,10, T = 20,
+  ssg/randbal/cellmax, randbal ×3 seeds):** recross/level is **FLAT in d**
+  — ssg 0.5–0.6 (d ≥ 6), cellmax 1.4–1.6, randbal pooled means
+  0.95/0.83/0.96/0.86 (d = 4/6/8/10; single-seed "growth" was seed noise,
+  caught by replication). Everywhere `2 × recross ≈ stepband` (ratio
+  0.91–1.00): **the toll's fair-coin pricing is exact on the real dynamics —
+  no sign bias; ALL the smallness lives in band residence (1.2–3.3
+  rounds/level vs the coin-model floor's 2.2–7).** The real FW walks beat
+  their own coin model 3–10×, flat in d: the per-level transience is a
+  genuine dynamical property, provably NOT a consequence of fairness +
+  shrinkage.
+- **Net:** the general annealed theorem's last piece, final form — **the
+  BAND-RESIDENCE BUDGET: E[rounds with |φ(c_t) − ℓ| < μ_t] = O(1) per past
+  level for annealed FW-apex trajectories** (O(log dt) for quasi-poly) —
+  must be proved from the dynamics (candidate engine: `one_sided_of_kept`,
+  each cut evicts the surviving mass one-sidedly from the current offset,
+  mean-repelling the walk from its own trace) or engineered (the cycle-21
+  apex-nudge design lever). Data supports it: flat in d, all oracles.
+
 ## Guardrails held
 
 No fabricated proofs; unit-cost caveat stated; confounds controlled (isotropic
